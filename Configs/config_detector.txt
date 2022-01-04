@@ -1,0 +1,48 @@
+Configuration du detecteur
+## Ce fichier sert a configurer le detecteur
+## Il permet de fixer les nombreuses caracteristiques
+#
+# Format de pixel - choisir nombre (0 = 30*30 - 1=50*150 - 2=50*300)
+frmt_pxl:0
+#
+# Espacement entre pixel en x et y (en micrometre)
+spcng_pxl_x:0
+spcng_pxl_y:0
+#
+# Nombre de lignes/colonnes de pixels dans un chip
+nb_lign_pxl_chp:512
+nb_coln_pxl_chp:1024
+#
+# Zone morte du chip (gauche/droite/bas/haut) en micrometre
+zn_mrt_chp_gau:50
+zn_mrt_chp_dro:50
+zn_mrt_chp_bas:50
+zn_mrt_chp_hau:50
+#
+# Espacement entre chip en x et y (en micrometre)
+spcng_chp_x:150
+spcng_chp_y:150
+#
+# Nombre de lignes/colonnes de chip dans un module
+nb_lign_chp_mdl:5
+nb_coln_chp_mdl:2
+#
+# Espacement entre module en x et y (en micrometre)
+spcng_mdl_x:300
+spcng_mdl_y:300
+#
+# Nombre de lignes/colonnes de module dans une stave
+nb_lign_mdl_stv:17
+nb_coln_mdl_stv:1
+#
+# Espacement entre stave en x et y (en micrometre)
+spcng_stv_x:100 
+spcng_stv_y:100
+#
+# Nombre de lignes/colonnes de stave dans le detecteur
+nb_lign_stv:1
+nb_coln_stv:12
+#
+# Dimension de la zone morte au centre du détecteurs en micrometre
+zn_mrt_center_x:10
+zn_mrt_center_y:20
