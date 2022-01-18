@@ -10,7 +10,7 @@ except NameError:
 
 class Module:
 
-  def __init__(self, cfg, x_pos = 0, y_pos = 0, id_ = ""):
+  def __init__(self, cfg, x_pos = 0, y_pos = 0):
     
     
     nb_lign_chp_mdl = cfg._nb_lign_chp_mdl
@@ -20,28 +20,17 @@ class Module:
     spcng_chp_x = cfg._spcng_chp_x
     spcng_chp_y = cfg._spcng_chp_y
     
-    matrice = [[]for k in range(nb_lign_chp_mdl)]
+    matrice = [[[]for k in range(nb_coln_chp_mdl)] for j in range (nb_lign_chp_mdl)]
     x_courant = x_pos
     y_courant = y_pos
-    
-    self._id = id_
-      
-    def f_coln(y):
-      while len(y) < cfg._numerotation[4]:
-        y = "0"+y
-      return(y)
-        
-    def f_lign(y):
-      while len(y) < cfg._numerotation[5]:
-        y = "0"+y
-      return(y)
-    
+
+          
     for i in range(nb_lign_chp_mdl):
       for j in range(nb_coln_chp_mdl):
         #on rajoute le nouveau chip, par abscisses et ordonnees croissantes
         #attention a ca, le premier pixel a etre rajoute est en [nb_lign_pxl_chp-1][0]
-        chp = ClassChip.Chip(cfg, x_courant, y_courant, id_ + f_lign(str(i)) + f_coln(str(j)))
-        matrice[i].append(chp)
+        chp = ClassChip.Chip(cfg, x_courant, y_courant)
+        matrice[i][j] = chp
         #on actualise les donnees courantes 
         x_courant += wth_chp + spcng_chp_x
         
@@ -79,7 +68,8 @@ class Module:
         self._nb_hit += 1
     
     
-  def hit_part_prec(self, cfg, part, prec):
+  def hit_part_prec(self, part, prec):
+    cfg = self._cfg
     if prec == 0:
       self._hit_parts(part)
       return self._nb_hit

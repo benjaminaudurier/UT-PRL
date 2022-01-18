@@ -9,7 +9,7 @@ except NameError:
 
 class Stave:
 
-  def __init__(self, cfg, x_pos = 0, y_pos = 0, id_ = ""):
+  def __init__(self, cfg, x_pos = 0, y_pos = 0):
     
     
     nb_lign_mdl_stv = cfg._nb_lign_mdl_stv
@@ -19,30 +19,17 @@ class Stave:
     spcng_mdl_x = cfg._spcng_mdl_x
     spcng_mdl_y = cfg._spcng_mdl_y
     
-    matrice = [[]for k in range(nb_lign_mdl_stv)]
+    matrice = [[[]for k in range(nb_coln_mdl_stv)] for j in range (nb_lign_mdl_stv)]
     x_courant = x_pos
     y_courant = y_pos
-    
-    self._id = id_
-    
-    def f_coln(y):
-      while len(y) < cfg._numerotation[2]:
-        y = "0"+y
-      return(y)
         
-    def f_lign(y):
-      while len(y) < cfg._numerotation[3]:
-        y = "0"+y
-      return(y)
-    
-    
     for i in range(nb_lign_mdl_stv):
       for j in range(nb_coln_mdl_stv):
       
         #on rajoute le nouveau pixel, par abscisses et ordonnees croissantes
         #attention a ca, le premier pixel a etre rajoute est en [nb_lign_pxl_mdl-1][0]
-        mod = ClassModule.Module(cfg, x_courant, y_courant, id_ + f_lign(str(i)) + f_coln(str(j)))
-        matrice[i].append(mod)
+        mod = ClassModule.Module(cfg, x_courant, y_courant)
+        matrice[i][j] = mod
         #on actualise les donnees courantes 
         x_courant += wth_mdl + spcng_mdl_x
         
@@ -80,13 +67,16 @@ class Stave:
         self._nb_hit += 1
         
         
-  def hit_part_prec(self, cfg, part, prec):
+  def hit_part_prec(self, part, prec):
     if prec == 0:
       self._hit_parts(part)
       return self._nb_hit
     else:
-      res = [[]for k in range(cfg._nb_lign_mdl_stv)]
-      for i in range(cfg._nb_lign_mdl_stv):
-        for j in range(cfg._nb_coln_mdl_stv):
-          res[i].append(self._matrice_modules[i][j].hit_part_prec(cfg,part,prec-1))
+      res = [[]for k in range(self._cfg._nb_lign_mdl_stv)]
+      for i in range(self._cfg._nb_lign_mdl_stv):
+        for j in range(self._cfg._nb_coln_mdl_stv):
+          res[i].append(self._matrice_modules[i][j].hit_part_prec(self.cfg,part,prec-1))
       return res
+    
+  def draw(self, c):
+    return

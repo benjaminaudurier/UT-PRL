@@ -6,6 +6,8 @@ try:
   import ClassStave
 except NameError:
   import ClassStave
+  
+run def_functions
 
 
 class Detector:
@@ -20,29 +22,26 @@ class Detector:
     spcng_stv_x = cfg._spcng_stv_x
     spcng_stv_y = cfg._spcng_stv_y
     
-    matrice = [[]for k in range(nb_lign_stv)]
+    matrice = [[[]for k in range(nb_coln_stv)] for j in range (nb_lign_stv)]
     x_courant = x_pos
     y_courant = y_pos
       
-    def f_coln(y):
-      while len(y) < cfg._numerotation[0]:
-        y = "0"+y
-      return(y)
-        
-    def f_lign(y):
-      while len(y) < cfg._numerotation[1]:
-        y = "0"+y
-      return(y)
-    
+
     for i in range(nb_lign_stv):
       for j in range(nb_coln_stv):
       
         #on rajoute le nouveau pixel, par abscisses et ordonnees croissantes
         #attention a ca, le premier pixel a etre rajoute est en [nb_lign_pxl_stv-1][0]
-        stv = ClassStave.Stave(cfg, x_courant, y_courant, f_lign(str(i)) + f_coln(str(j)))
-        matrice[i].append(stv)
+        try:
+          stv = load_object("stave" + str(j))
+        except IOError:
+          stv = ClassStave.Stave(cfg, x_courant, y_courant)
+          save_object(stv, "stave" + str(j))
+        matrice[i][j] = stv
         #on actualise les donnees courantes 
         x_courant += wth_stv + spcng_stv_x
+        print("Creation de la stave" + str(j))
+        
       
         
       x_courant = x_pos
@@ -55,6 +54,7 @@ class Detector:
     self._y_pos = y_pos
     self._matrice_staves = matrice
     self._nb_hit = 0
+    self._cfg = cfg
     
     
   def hit_parts(self, part):
@@ -75,7 +75,8 @@ class Detector:
         self._nb_hit += 1
     
     
-  def hit_part_prec(self, cfg, part, prec):
+  def hit_part_prec(self, part, prec):
+    cfg = self._cfg
     if prec == 0:
       self._hit_parts(part)
       return self._nb_hit

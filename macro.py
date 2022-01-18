@@ -50,14 +50,14 @@ if __name__ == '__main__':
   ROOT.gStyle.SetPalette(1)
   c1 = c.cd(1)
   c1.SetRightMargin(0.17)
-  #h.Multiply(1/eventNumber) le draw normalized donne de mauvaises valeurs pour l'echelle, il faut utiliser une autre fonction
-  h.DrawNormalized('COLZ')
+  h.Draw('COLZ')
   ROOT.gPad.SetLogz(1)
   ROOT.gPad.SetTitle("test")
   palette = h.GetListOfFunctions().FindObject("palette")
   c1.SetTitle("lalala")
   c1.Modified()
   c1.Update()
+  c1.Draw()
 
   
   
@@ -65,7 +65,7 @@ if __name__ == '__main__':
   h = ROOT.TH1F('h','titl',nb_bin_r,minr,maxr)
   tree.Project (h.GetName() , '(HitUTXpos_0**2 + HitUTYpos_0**2)**0.5/10','HitUTZpos_0/10 >{} && HitUTZpos_0/10 <{}'.format(minz,maxz))
   f_radial = ROOT.TF1("f_radial", "1/x", minr, maxr)
-  h.Multiply(f_radial, 1/(2*np.pi*eventNumber))
+  h.Multiply(f_radial, nb_bin_r/(2*np.pi*eventNumber*(maxr-minr)))
   h.SetXTitle("R [cm]")
   h.SetYTitle("Hits / cm**2 / BX")
   c2 = c.cd(2)

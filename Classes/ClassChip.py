@@ -9,7 +9,7 @@ except NameError:
 
 class Chip:
 
-  def __init__(self, cfg, x_pos = 0, y_pos = 0, id_ = ""):
+  def __init__(self, cfg, x_pos = 0, y_pos = 0):
     
     nb_coln_pxl_chp = cfg._nb_coln_pxl_chp
     nb_lign_pxl_chp = cfg._nb_lign_pxl_chp
@@ -17,29 +17,16 @@ class Chip:
     hgt_pxl = cfg._hgt_pxl
 
     #les champs largeur_zm et ecart sont la pour rendre compte des zones mortes   
-    matrice = [[]for k in range(nb_lign_pxl_chp)]
+    matrice = [[[]for k in range(nb_coln_pxl_chp)] for j in range (nb_lign_pxl_chp)]
     x_courant = x_pos + cfg._zn_mrt_chp_gau
     y_courant = y_pos + cfg._zn_mrt_chp_bas
     
-    
-    self._id = id_
-
-    def f_coln(y):
-      while len(y) < cfg._numerotation[6]:
-        y = "0"+y
-      return(y)
-        
-    def f_lign(y):
-      while len(y) < cfg._numerotation[7]:
-        y = "0"+y
-      return(y)
-      
     for i in range(nb_lign_pxl_chp):
       for j in range(nb_coln_pxl_chp):
         #on rajoute le nouveau pixel, par abscisses et ordonnees croissantes
         #attention a ca, le premier pixel a etre rajoute est en [nb_lign_pxl_chp-1][0]
-        pix = ClassPixel.Pixel(cfg, x_courant, y_courant, id_ + f_lign(str(i)) + f_coln(str(j)))
-        matrice[i].append(pix)
+        pix = ClassPixel.Pixel(cfg, x_courant, y_courant)
+        matrice[i][j] = pix
         #on actualise les donnees courantes 
         x_courant += wth_pxl
         
@@ -57,6 +44,11 @@ class Chip:
   def hit(self):
     self._nb_hit +=1
   
+  def reset_hit(self):
+    self._nb_hit = 0
+    for i in range(nb_lign_pxl_chp):
+      for j in range(nb_coln_pxl_chp):
+        self._matrice_pixels[i][j].reset_hit()
   
   
   def hit_part(self, part):
@@ -142,7 +134,8 @@ class Chip:
     
 
 
-  def hit_part_prec(self, cfg, part, prec):
+  def hit_part_prec(self, part, prec):
+    cfg = self._cfg
     if prec == 0:
       self._hit_parts(part)
       return self._nb_hit
