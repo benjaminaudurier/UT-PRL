@@ -1,0 +1,20 @@
+Configuration of the study zone
+#
+## This file allows to configurate the study zone
+## We are interested for the z range, t range, FTHit and we need the mu-factor and the bench-crossing rate of the experiment
+#
+# Fill the interesting z-range in cm
+min_z:1
+max_z:237
+#
+# Fill the interesting FTHits-range - do not fill if useless
+min_FTHit:
+max_FTHit:
+# Fill the mu-factor of the experiment (with a factor 10**-3)
+mu_factor:1
+#
+# Fill the bench-crossing rate of the experiment (with a factor 10**6)
+bx_rate:100
+#
+# Fill the number of bit needed by hit
+nb_of_bit_BX_id:12
