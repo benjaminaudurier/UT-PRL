@@ -3,6 +3,14 @@
 Project to study the futur UT design.
 
 _______________
+HOW TO USE
+-> change the configs files to make the tests you wanty
+-> put a MonteCarlo particle tree in the folder containing Classes, Configs...
+-> make sure the name in the constant section of main.py corresponds to the wanted config files
+-> run main.py
+
+
+_______________
 DESCRIPTION
 The goal of the code is to simulate the datarate of the detector for
 different given configurations of the UT.
@@ -40,8 +48,7 @@ _______________
 FOLDERS
   - Classes contains all the different classes
   - Configs contains the config files
-  - Files contains some useful save files
-  - Pictures contains the generated pictures
+  - Pictures will contain the generated pictures, if it doesn't exist, it will be created by the code
 
 
 
