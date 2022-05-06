@@ -1,10 +1,12 @@
-from __future__ import print_function
-import ROOT
-import numpy as np
-
-
+###############################################################################
 # the class Particule converts a tree of data in three lists containing the 
 # x position, y position, and event number for each particle when they hit the detector
+###############################################################################
+
+from __future__ import print_function
+import numpy as np
+
+###############################################################################
 class Particule:
 
   def __init__(self, tree, cfg_sz, cfg_detector):
@@ -20,6 +22,7 @@ class Particule:
     # we convert the wth_mdl from micrometer to millimeter to be adapted to the data contained in tree
     wth_mdl = cfg_detector.get("wth_mdl")*10**-3
     hgt_mdl = cfg_detector.get("hgt_mdl")*10**-3
+
     count_particle_hitting_central_zone = 0
     
     
@@ -34,12 +37,14 @@ class Particule:
       #if it does :
       min_FTHit = cfg_sz.get("min_FTHit")
       max_FTHit = cfg_sz.get("max_FTHit")
+
+
       print("The config_study_zone file does the FTHit characteristics")
       
       for entry in tree: #we iterate on every leaf in the tree
         if entry.nFThits > min_FTHit and entry.nFThits < max_FTHit and entry.HitUTZpos_0/10 > min_z and entry.HitUTZpos_0/10 < max_z:
           
-          if entry.HitUTXpos_0 < wth_mdl/2 and entry.HitUTXpos_0 > -wth_mdl/2 and entry.HitUTYpos_0 < hgt_mdl/2 and entry.HitUTYpos_0 > -hgt_mdl/2:
+          if entry.HitUTXpos_0 < wth_mdl/2 and entry.HitUTXpos_0 > -wth_mdl/2 and entry.HitUTYpos_0 <= hgt_mdl/2 and entry.HitUTYpos_0 >= -hgt_mdl/2:
             #if the particle hits the central zone, it is dissmissed
             count_particle_hitting_central_zone += 1
             
@@ -60,15 +65,17 @@ class Particule:
       for entry in tree:#we iterate on every leaf in the tree
         if entry.HitUTZpos_0/10 > min_z and entry.HitUTZpos_0/10 < max_z:
         
-          if entry.HitUTXpos_0 < wth_mdl/2 and entry.HitUTXpos_0 > -wth_mdl/2 and entry.HitUTYpos_0 < hgt_mdl/2 and entry.HitUTYpos_0 > -hgt_mdl/2:
+          if entry.HitUTXpos_0 < wth_mdl/2 and entry.HitUTXpos_0 > -wth_mdl/2 and entry.HitUTYpos_0 <= hgt_mdl/2 and entry.HitUTYpos_0 >= -hgt_mdl/2:
             #if the particle hits the central zone, it is dissmissed
             count_particle_hitting_central_zone += 1
-            
+
           else:
             #if it hits elsewhere, its coordinates are added to the list of coordinates to study
             tab_result[0].append(entry.HitUTXpos_0*10e2)
             tab_result[1].append(entry.HitUTYpos_0*10e2)
             tab_result[2].append(entry.eventNumber)
+            
+
             
             if entry.eventNumber != eventnumber:#these three lines of code count the number of events present in the experiment
               eventnumber = entry.eventNumber
@@ -90,4 +97,5 @@ class Particule:
     self._list_y = list(parts[:,1])
     self._number_of_event = number_of_event
     self._count_particle_hitting_central_zone = count_particle_hitting_central_zone
+    
     
