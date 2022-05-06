@@ -101,7 +101,7 @@ def draw_detector(obj, particles, data_rate = [], name = "Boxes",  precision = 3
       scale[i].SetFillColor(57 + i)
       scale[i].Draw()
       
-      grads[i] = ROOT.TText(x_scale + 0.06, y_scale * i /42. + 0.05, "{:.1e}".format(float(max_hits)/(42.*1e9) * i))
+      grads[i] = ROOT.TText(x_scale + 0.06, y_scale * i /42., "{:.1e}".format(float(max_hits)/(42.*1e9) * i))
       grads[i].SetTextSize(1./42)
       grads[i].Draw()
       
