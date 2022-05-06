@@ -9,6 +9,7 @@ HOW TO USE
 - make sure the name in the constant section of main.py corresponds to the wanted config files
 - go to the Classes folder
 - run main.py
+- the Pictures are stored in the Pictures folder created
 
 
 _______________
