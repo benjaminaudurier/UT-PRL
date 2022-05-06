@@ -4,10 +4,12 @@ Project to study the futur UT design.
 
 _______________
 HOW TO USE
--> change the configs files to make the tests you wanty
--> put a MonteCarlo particle tree in the folder containing Classes, Configs...
--> make sure the name in the constant section of main.py corresponds to the wanted config files
--> run main.py
+- change the configs files to make the tests you wanty
+- put a MonteCarlo particle tree in the folder containing Classes, Configs...
+- make sure the name in the constant section of main.py corresponds to the wanted config files
+- go to the Classes folder
+- run main.py
+- the Pictures are stored in the Pictures folder created
 
 
 _______________
