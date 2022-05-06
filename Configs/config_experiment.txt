@@ -10,11 +10,8 @@ max_z:237
 # Fill the interesting FTHits-range - do not fill if useless
 min_FTHit:
 max_FTHit:
-# Fill the mu-factor of the experiment (with a factor 10**-3)
-mu_factor:1
-#
-# Fill the bench-crossing rate of the experiment (with a factor 10**6)
-bx_rate:100
+# Fill the event rate of the experiment (in kHz)
+event_rate:100
 #
 # Fill the number of bit needed by hit
 nb_of_bit_BX_id:12
