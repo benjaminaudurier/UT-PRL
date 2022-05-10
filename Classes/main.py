@@ -11,7 +11,7 @@ folder = os.getcwd().replace('\\','/')[:-8]
 
 ################################ CONSTANT #####################################
 
-f = ROOT.TFile(folder + "/MCtracks-PbPbtest-100_1.root")
+f = ROOT.TFile(folder + "/MCtracks-pptest-5000.root")
 d = f.Get("MCParticleNTuple")
 tree = d.Tracks 
 
@@ -20,7 +20,7 @@ name_hist_module = "hist_module"
 name_plot_stave = "hit_on_stave"
 
 config_detector = "config_detector2"
-config_experiment = "config_experiment"
+config_experiment = "config_experiment_pp"
 
 
 ############################## DIRECTORIES #################################### 
@@ -96,20 +96,23 @@ if __name__ == '__main__':
   #drawing of the results
   print("\n =================================   \n Drawing of the results \n ================================= \n")
   UTGeometry.draw_detector(det, particles=particles, data_rate = data_rate, name = config_detector + "/final_result", missed_particles =  missed_particle_inside_rectangle_wo_central_zone , total_number = total_number)
-  
+
+
+
   #plotting of the figures
   print("\n ================================= \n Final drawing \n ================================= \n")
-  res = np.array(res)
+  res = np.array(res_nb_event)
   res_flatten = res.flatten()
   
+
   plt.figure()
   plt.ylabel("Number of chips")
   plt.xlabel("Number of hits / Number of events")
   plt.yscale('log')
   y, bin_edges = np.histogram(res_flatten, bins=30)
   bin_centers = 0.5*(bin_edges[1:] + bin_edges[:-1])
-  plt.bar(bin_centers, y,width = 30, yerr = y**0.5)
-  plt.ylim(1,400)
+  width = bin_centers[1] - bin_centers[0]
+  plt.bar(bin_centers, y, width = width, yerr = y**0.5)
   plt.savefig("../Pictures/" + config_detector + "/" + name_hist_chip + ".png")
   plt.close()
   
@@ -121,8 +124,8 @@ if __name__ == '__main__':
   res_module_flatten = np.sum(np.array(res),axis=(4,5)).flatten()
   y, bin_edges = np.histogram(res_module_flatten, bins=15)
   bin_centers = 0.5*(bin_edges[1:] + bin_edges[:-1])
-  plt.bar(bin_centers, y,width = 250, yerr = y**0.5)
-  plt.ylim(1,100)
+  width = bin_centers[1] - bin_centers[0]
+  plt.bar(bin_centers, y, width = width, yerr = y**0.5)
   plt.savefig("../Pictures/" + config_detector + "/" + name_hist_module +".png")
   plt.close()
   

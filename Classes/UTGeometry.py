@@ -97,7 +97,7 @@ def draw_detector(obj, particles, data_rate = [], name = "Boxes",  precision = 3
   # draw the color scale on the right side
   if max_hits:
     for i in range (42):
-      scale[i] = ROOT.TBox(x_scale, y_scale * (i / 42.) + 0.05, x_scale + .05, y_scale * ((i+1) / 42.) + 0.05)
+      scale[i] = ROOT.TBox(x_scale, y_scale * (i / 42.), x_scale+0.05, y_scale * (i+1) / 42.)
       scale[i].SetFillColor(57 + i)
       scale[i].Draw()
       
