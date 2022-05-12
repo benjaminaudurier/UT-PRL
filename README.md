@@ -1,6 +1,10 @@
 # UT Datarate calculation (Python) 14/04/2022
 
-Project to study the futur UT design.
+Project to study the future UT design.
+
+_______________
+NEEDED
+ROOT, numpy, matplotlib, os, tqdm
 
 _______________
 HOW TO USE
