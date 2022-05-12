@@ -1,6 +1,6 @@
 ###############################################################################
 #creates the config objects, whose attributes caracterize the detector and the 
-# simulated experiment (study zone, pixel size, amount of pixels per chip...)
+# simulated experiment (pixel size, amount of pixels per chip...)
 #the format of the config file has to be the same as that of 
 # "/grid_mnt/data__DATA/data.lhcb/PRL/Configs/config_detector.txt"
 ###############################################################################
@@ -110,6 +110,15 @@ class Config :
     #width and height for detector
     self._dict["wth_det"] = (self._dict["wth_stv"]+self._dict["spcng_stv_x"])*self._dict['nb_coln_stv'] - self._dict["spcng_stv_x"] # n objects n-1 spaces between object
     self._dict["hgt_det"] = (self._dict["hgt_stv"]+self._dict["spcng_stv_y"])*self._dict['nb_line_stv'] - self._dict["spcng_stv_y"] # n objects n-1 spaces between object
+
+    #calculate the percentage of dead_zone in the detector
+    active_area_chip = w*h*self._dict['nb_line_pxl_chp']*self._dict['nb_coln_pxl_chp']
+    nb_chip_in_det = self._dict['nb_coln_chp_mdl'] * self._dict['nb_coln_mdl_stv'] * self._dict['nb_coln_stv'] * self._dict['nb_line_chp_mdl'] * self._dict['nb_line_mdl_stv'] * self._dict['nb_line_stv']
+    total_active_area = active_area_chip * nb_chip_in_det
+    area_det = self._dict["wth_det"] * self._dict["hgt_det"]
+    area_beam = self._dict["wth_mdl"] * self._dict["hgt_mdl"]
+    active_ratio = float(total_active_area)/(area_det-area_beam)
+    self._dict["active_ratio"] = active_ratio
     
     
   #############################################################################

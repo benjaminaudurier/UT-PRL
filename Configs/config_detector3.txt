@@ -32,7 +32,7 @@ spcng_mdl_x:300
 spcng_mdl_y:300
 #
 # Nb of line/colon of module in a stave
-nb_line_mdl_stv:7
+nb_line_mdl_stv:13
 nb_coln_mdl_stv:1
 #
 # Spacing between staves (x and y in um)
@@ -41,7 +41,7 @@ spcng_stv_y:100
 #
 # Nb of line/colon of stave
 nb_line_stv:1
-nb_coln_stv:9
+nb_coln_stv:17
 #
 # Dimension de la zone morte au centre du détecteurs en micrometre
 dead_zone_center_x:10

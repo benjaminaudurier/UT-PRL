@@ -59,16 +59,16 @@ class Config :
     #checks the format of config.txt, returns error messages if the format isn't right
     keys = ["min_z","max_z","min_FTHit","max_FTHit","event_rate","nb_of_bit_BX_id"]
     lines = self._lines
-    errorMessage = "The file's format does not correspond to a configuration of the study zone file format"
+    errorMessage = "The file's format does not correspond to a configuration of the experiment file format"
     bool = True
     #checks if the file has the right format
     try :
-      assert lines[0][0] == "Configuration of the study zone"
+      assert lines[0][0] == "Configuration of the experiment"
       print("Verification 1st line")
     except :
       print("#######ERROR#######") 
       print(errorMessage)
-      print("Is it a study zone configuration file ?")
+      print("Is it an experiment configuration file ?")
       bool = False
     for k in range(len(keys)): 
       try :

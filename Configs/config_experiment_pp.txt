@@ -1,4 +1,4 @@
-Configuration of the study zone
+Configuration of the experiment
 #
 ## This file allows to configurate the study zone
 ## We are interested for the z range, t range, FTHit and we need the mu-factor and the bench-crossing rate of the experiment
