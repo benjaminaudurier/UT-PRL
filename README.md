@@ -2,11 +2,11 @@
 
 Project to study the future UT design.
 
-_______________
+
 ## NEEDED
  - ROOT, numpy, matplotlib, os, tqdm
 
-_______________
+
 ## HOW TO USE
 - change the configs files to make the tests you wanty
 - put a MonteCarlo particle tree in the folder containing Classes, Configs...
@@ -16,7 +16,6 @@ _______________
 - the Pictures are stored in the Pictures folder created
 
 
-_______________
 ## DESCRIPTION
 The goal of the code is to simulate the datarate of the detector for
 different given configurations of the UT.
@@ -25,8 +24,6 @@ we want to test the detector, and it gives us in output a map of the
 datarate by chips, histograms of the distribution of pixel/chip by 
 number of hit, and a plot and the number of hit/number of stave
 
-
-_______________
 ## INPUTS
 In input of this program, we have 
   - a ROOT.TTree file containing a simulation of particles by MonteCarlo
@@ -37,8 +34,6 @@ In input of this program, we have
     It gives some values to exclude some particles for the tree and some
     numerical values to calculate the datarate 
 
-
-_______________
 ## CLASSES
   - ClassConfigDetector takes the config_detector file and gives an object
     containing all the elements from the config_detector
@@ -49,8 +44,7 @@ _______________
   - UTGeometry constructs the detector from the preceding Classes, and 
     the functions where the particles hit the detector
   - main regroups all the different classes and construct the plots
-  
-_______________
+
 ## FOLDERS
   - Classes contains all the different classes
   - Configs contains the config files
