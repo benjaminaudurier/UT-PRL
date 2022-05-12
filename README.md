@@ -3,11 +3,11 @@
 Project to study the future UT design.
 
 _______________
-NEEDED
+## NEEDED
  - ROOT, numpy, matplotlib, os, tqdm
 
 _______________
-HOW TO USE
+## HOW TO USE
 - change the configs files to make the tests you wanty
 - put a MonteCarlo particle tree in the folder containing Classes, Configs...
 - make sure the name in the constant section of main.py corresponds to the wanted config files
@@ -17,7 +17,7 @@ HOW TO USE
 
 
 _______________
-DESCRIPTION
+## DESCRIPTION
 The goal of the code is to simulate the datarate of the detector for
 different given configurations of the UT.
 We have inputs characterising the detector and the particles for whom
@@ -27,7 +27,7 @@ number of hit, and a plot and the number of hit/number of stave
 
 
 _______________
-INPUTS
+## INPUTS
 In input of this program, we have 
   - a ROOT.TTree file containing a simulation of particles by MonteCarlo
     that wil be used to artificially hit our detector
@@ -39,7 +39,7 @@ In input of this program, we have
 
 
 _______________
-CLASSES
+## CLASSES
   - ClassConfigDetector takes the config_detector file and gives an object
     containing all the elements from the config_detector
   - ClassConfigExperiment does the same for config_experiment
@@ -51,7 +51,7 @@ CLASSES
   - main regroups all the different classes and construct the plots
   
 _______________
-FOLDERS
+## FOLDERS
   - Classes contains all the different classes
   - Configs contains the config files
   - Pictures will contain the generated pictures, if it doesn't exist, it will be created by the code
@@ -60,7 +60,7 @@ FOLDERS
 
 
 
-
+_______________
 Yorgos Chatziantoniou
 Arnaud Lafay
 Pierre Olleon
