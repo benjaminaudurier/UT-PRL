@@ -45,11 +45,10 @@ class Particle:
       for entry in tqdm(tree): #we iterate on every leaf in the tree
         if entry.nFThits > min_FTHit and entry.nFThits < max_FTHit and entry.HitUTZpos_0/10 > min_z and entry.HitUTZpos_0/10 < max_z:
           
-          if entry.HitUTXpos_0 < wth_mdl/2 and entry.HitUTXpos_0 > -wth_mdl/2 and entry.HitUTYpos_0 <= hgt_mdl/2 and entry.HitUTYpos_0 >= -hgt_mdl/2:
-            #if the particle hits the central zone, it is dissmissed
-            count_particle_hitting_central_zone += 1
+            if entry.HitUTXpos_0 < wth_mdl/2 and entry.HitUTXpos_0 > -wth_mdl/2 and entry.HitUTYpos_0 <= hgt_mdl/2 and entry.HitUTYpos_0 >= -hgt_mdl/2:
+                #if the particle hits the central zone, it is dissmissed
+                count_particle_hitting_central_zone += 1
             
-          else:
             #if it hits elsewhere, its coordinates are added to the list of coordinates to study
             tab_result[0].append(entry.HitUTXpos_0*10e2)
             tab_result[1].append(entry.HitUTYpos_0*10e2)
@@ -66,11 +65,11 @@ class Particle:
       for entry in tree:#we iterate on every leaf in the tree
         if entry.HitUTZpos_0/10 > min_z and entry.HitUTZpos_0/10 < max_z:
 
-          if entry.HitUTXpos_0 < wth_mdl/2 and entry.HitUTXpos_0 > -wth_mdl/2 and entry.HitUTYpos_0 <= hgt_mdl/2 and entry.HitUTYpos_0 >= -hgt_mdl/2:
-            #if the particle hits the central zone, it is dissmissed
-            count_particle_hitting_central_zone += 1
+            if entry.HitUTXpos_0 < wth_mdl/2 and entry.HitUTXpos_0 > -wth_mdl/2 and entry.HitUTYpos_0 <= hgt_mdl/2 and entry.HitUTYpos_0 >= -hgt_mdl/2:
+                #if the particle hits the central zone, it is dissmissed
+                count_particle_hitting_central_zone += 1
 
-          else:
+         
             #if it hits elsewhere, its coordinates are added to the list of coordinates to study
             tab_result[0].append(entry.HitUTXpos_0*10e2)
             tab_result[1].append(entry.HitUTYpos_0*10e2)
