@@ -1,0 +1,48 @@
+Configuration of the detector 
+## This file allows the configuration of the detector 
+## It allows to set the following characteristics
+#
+# Pixel format (0 = 30*30 - 1=50*150 - 2=50*300)
+frmt_pxl:0
+#
+# Spacing between pixels (x and y in um)
+spcng_pxl_x:0
+spcng_pxl_y:0
+#
+# Nb of line/colon of pixel in a chip
+nb_line_pxl_chp:512
+nb_coln_pxl_chp:1024
+#
+# Dead zone of the chip in um
+dead_zone_chp_left:50
+dead_zone_chp_right:50
+dead_zone_chp_bottom:50
+dead_zone_chp_top:50
+#
+# Spacing between chips (x and y in um)
+spcng_chp_x:150
+spcng_chp_y:150
+#
+# Nb of line/colon of chip in a module
+nb_line_chp_mdl:4
+nb_coln_chp_mdl:2
+#
+# Spacing between modules (x and y in um)
+spcng_mdl_x:300
+spcng_mdl_y:300
+#
+# Nb of line/colon of module in a stave
+nb_line_mdl_stv:25
+nb_coln_mdl_stv:1
+#
+# Spacing between staves (x and y in um)
+spcng_stv_x:100 
+spcng_stv_y:100
+#
+# Nb of line/colon of stave
+nb_line_stv:1
+nb_coln_stv:27
+#
+# Dimension de la zone morte au centre du détecteurs en micrometre
+dead_zone_center_x:10
+dead_zone_center_y:20
