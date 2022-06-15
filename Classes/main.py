@@ -7,11 +7,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-folder = os.getcwd().replace('\\','/')[:-8]
+folder = os.path.dirname(os.getcwd()).replace("\\","/") + "/"
 
 ################################ CONSTANT #####################################
 #f = ROOT.TFile(folder + "/MCtracks-pptest-5000.root")
-f = ROOT.TFile(folder + "/MCtracks-PbPbcentral.root")
+f = ROOT.TFile(folder + "../../MCtracks-PbPbcentral.root")
 d = f.Get("MCParticleNTuple")
 tree = d.Tracks 
 
@@ -27,9 +27,9 @@ beam_wth = 6e4 # in um
 beam_hgt = 6e4
 
 ############################## DIRECTORIES #################################### 
-path1 = folder + "/Pictures"
-path2 = folder + "/Pictures/" + config_detector 
-path3 = folder + "/Pictures/" + config_detector + "/" + config_experiment
+path1 = folder + "/../../Pictures"
+path2 = folder + "/../../Pictures/" + config_detector 
+path3 = folder + "/../../Pictures/" + config_detector + "/" + config_experiment
 
 for path in [path1,path2, path3]:
     if not os.path.exists(path):
@@ -176,7 +176,7 @@ if __name__ == '__main__':
     bin_centers = 0.5*(bin_edges[1:] + bin_edges[:-1])
     width = bin_centers[1] - bin_centers[0]
     plt.bar(bin_centers, y, width = width, yerr = y**0.5)
-    plt.savefig("../Pictures/" + config_detector + "/" + config_experiment + "/" + name_hist_chip + ".png")
+    plt.savefig("../../../Pictures/" + config_detector + "/" + config_experiment + "/" + name_hist_chip + ".png")
     plt.close()
   
   
@@ -189,7 +189,7 @@ if __name__ == '__main__':
     bin_centers = 0.5*(bin_edges[1:] + bin_edges[:-1])
     width = bin_centers[1] - bin_centers[0]
     plt.bar(bin_centers, y, width = width, yerr = y**0.5)
-    plt.savefig("../Pictures/" + config_detector + "/" + config_experiment + "/" + name_hist_module +".png")
+    plt.savefig("../../../Pictures/" + config_detector + "/" + config_experiment + "/" + name_hist_module +".png")
     plt.close()
   
   
@@ -198,7 +198,7 @@ if __name__ == '__main__':
     plt.plot(np.arange(len(res_stave)),res_stave, 'x')
     plt.xlabel("Stave number")
     plt.ylabel("Number of hits / event")
-    plt.savefig("../Pictures/" + config_detector + "/" + config_experiment + "/" + name_plot_stave + ".png")
+    plt.savefig("../../../Pictures/" + config_detector + "/" + config_experiment + "/" + name_plot_stave + ".png")
     plt.close()
 
     #give the characteristics of the detector
@@ -237,7 +237,7 @@ if __name__ == '__main__':
     palette = h.GetListOfFunctions().FindObject("palette")
     c1.Modified()
     c1.Update()
-    c1.Print("../Pictures/" + config_detector + "/" + config_experiment + "/" + "occupancy" + ".png")
+    c1.Print("../../../Pictures/" + config_detector + "/" + config_experiment + "/" + "occupancy" + ".png")
 
 
     #subplot 2 - histogram (TH1) of number of hits for a given radius r - keep 0 < z < 2370 (first layer of detector)
@@ -254,7 +254,7 @@ if __name__ == '__main__':
     ROOT.gPad.SetLogy(1)
     c2.Modified()
     c2.Update()
-    c2.Print("../Pictures/" + config_detector + "/" + config_experiment + "/" + "hist" + ".png")
+    c2.Print("../../../Pictures/" + config_detector + "/" + config_experiment + "/" + "hist" + ".png")
 
 
     #subplot 3 - heatmap (TH2) of position in x and y - keep minz < z < maxz (first layer of detector) && r > minz
@@ -278,7 +278,7 @@ if __name__ == '__main__':
     palette = h.GetListOfFunctions().FindObject("palette")
     c3.Modified()
     c3.Update()
-    c3.Print("../Pictures/" + config_detector + "/" + config_experiment + "/" + "occupancy_by_second" + ".png")
+    c3.Print("../../../Pictures/" + config_detector + "/" + config_experiment + "/" + "occupancy_by_second" + ".png")
 
 
     #subplot 4 - histogram (TH1) of number of hits for a given radius r - keep 0 < z < 2370 (first layer of detector)
@@ -295,4 +295,4 @@ if __name__ == '__main__':
     ROOT.gPad.SetLogy(1)
     c4.Modified()
     c4.Update()
-    c4.Print("../Pictures/" + config_detector + "/" + config_experiment + "/" + "hist_by_second" + ".png")
+    c4.Print("../../../Pictures/" + config_detector + "/" + config_experiment + "/" + "hist_by_second" + ".png")

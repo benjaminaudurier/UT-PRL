@@ -10,10 +10,10 @@ import os
 
 from matplotlib.colors import LogNorm
 
-folder = os.getcwd().replace('\\','/')[:-8]
+folder = os.path.dirname(os.getcwd()).replace("\\","/") + "/"
 
 ################################ CONSTANT #####################################
-f = ROOT.TFile(folder + "/MCtracks-pptest-5000.root")
+f = ROOT.TFile(folder + "../../MCtracks-pptest-5000.root")
 #f = ROOT.TFile(folder + "/MCtracks-PbPbcentral.root")
 d = f.Get("MCParticleNTuple")
 tree = d.Tracks 
@@ -37,9 +37,9 @@ vmin = 0
 vmax = 12 # Gbit/s 
 
 ############################## DIRECTORIES #################################### 
-path1 = folder + "/Pictures"
-path2 = folder + "/Pictures/" + config_detector 
-path3 = folder + "/Pictures/" + config_detector + "/" + config_experiment
+path1 = folder + "/../../Pictures"
+path2 = folder + "/../../Pictures/" + config_detector 
+path3 = folder + "/../../Pictures/" + config_detector + "/" + config_experiment
 
 for path in [path1,path2, path3]:
     if not os.path.exists(path):
@@ -127,7 +127,7 @@ def generate_config_file(format_pxl, nb_line_pxl, nb_coln_pxl):
     nb_coln_chp = int(1.5*beam_wth) // wth_chp + 5
 
     
-    with open(folder + '/Configs/hottest_chip/' + title + ".txt", 'w') as f:
+    with open(folder + 'Configs/hottest_chip/' + title + ".txt", 'w') as f:
         f.write("Configuration of the detector \n" + 
                 "## This file allows the configuration of the detector\n" + 
                 "## It allows to set the following characteristics\n" + 
@@ -190,7 +190,7 @@ if __name__ == '__main__':
 
     fig.suptitle(f'Data rate [Gbit/s] of the hottest chip for different configuration of detectors', fontsize = 20)    
     #creation of the config object for the experiment
-    cfg_exp = ClassConfigExperiment.Config(folder + "/Configs/" + config_experiment + ".txt")
+    cfg_exp = ClassConfigExperiment.Config(folder + "Configs/" + config_experiment + ".txt")
 
     count = 1   
 
@@ -209,11 +209,11 @@ if __name__ == '__main__':
                 config_detector = format_pxl + "_" + line_number + "_" + coln_number
                 print(config_detector)
 
-                if not os.path.exists(folder + "/Configs/hottest_chip/" + config_detector + ".txt"):
+                if not os.path.exists(folder + "Configs/hottest_chip/" + config_detector + ".txt"):
                     generate_config_file(format_pxl,line_number,coln_number)
 
                 #creation of the config object for the detector
-                cfg_detector = ClassConfigDetector.Config(folder + "/Configs/hottest_chip/" + config_detector + ".txt")
+                cfg_detector = ClassConfigDetector.Config(folder + "Configs/hottest_chip/" + config_detector + ".txt")
   
                 #creation of the detector object
                 det = UTGeometry.Detector(cfg_detector)
@@ -283,5 +283,5 @@ if __name__ == '__main__':
     pcm = ax.pcolormesh(tab,cmap = "hot_r", vmin = vmin, vmax = vmax)
 
     fig.colorbar(pcm, ax = axs.ravel().tolist())
-    plt.savefig("../Pictures/" + "test" + ".png")
+    plt.savefig("../../../Pictures/" + "test" + ".png")
     plt.close()
