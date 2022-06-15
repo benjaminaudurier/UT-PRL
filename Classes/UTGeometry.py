@@ -14,7 +14,7 @@ ROOT.gROOT.SetBatch(ROOT.kTRUE)
 
 ###############################################################################
 # hit_parts gives the number of particles that hit the rectangle defined by the object self
-def hit_parts(obj, copy_part):
+def hit_parts(obj, copy_part, count_missed_part):
   #particles.list_x and particles.list_y must be sorted (on the x-basis), to optimise the iterative treatment
   x_pos = obj._x_pos
   y_pos = obj._y_pos
@@ -24,10 +24,18 @@ def hit_parts(obj, copy_part):
   #we look for the particles that hit the object that is being studied
   n = len(copy_part[0])
   i = 0
-  while (copy_part[0][i]<=x_pos+wth) and (i!=n-1):
+
+  while i<n-1 and copy_part[0][i]<=x_pos+wth:
     print("{} particles left".format(n), end = '\r') #this line displays a counter
     x_part = copy_part[0][i]
     y_part = copy_part[1][i]
+
+    if x_part < x_pos-7*wth:
+      copy_part[0].pop(i)
+      copy_part[1].pop(i)
+      n -= 1
+      count_missed_part += 1
+
     if (x_part >= x_pos) and (x_part <= (x_pos + wth)) and (y_part >= y_pos) and (y_part <= (y_pos + hgt)): #if the particle hits
       count += 1          # the count is increased
       copy_part[0].pop(i) # the particle is deleted from the  particles lists
@@ -35,27 +43,30 @@ def hit_parts(obj, copy_part):
       n-=1
     else:
       i+=1
-  return count
+  return count, count_missed_part
 
 
 ###############################################################################
 # hit_parts_precision gives a table of how many particles hit the object of the precision given (0:det - 1:stv - 2:mdl...)
 def hit_parts_precision(obj, copy_part, precision = 3):
+  count_missed_part = 0
   #pos_particles is a list [pos_particles_x, pos_particles_y], and pos_particles_x is a copy of particles._list_x
   if precision == 0:
     #here we have reached the last level of the recursion, and the hitparts function is called
-    return hit_parts(obj,copy_part)
+    return hit_parts(obj,copy_part, count_missed_part)
   else:
     matrix = obj._matrix
     nb_line = len(matrix)
     nb_coln = len(matrix[0])
   
-    res = [[[]for i in range(nb_coln)] for j in range (nb_line)]
+    res = [[[]for j in range(nb_coln)] for i in range (nb_line)]
     for i in range(nb_coln):
       for j in range(nb_line):
         #we recursively call the function on every sub-element of the matrix
-        res[j][i] = hit_parts_precision(matrix[j][i], copy_part, precision-1)
-    return res
+        res_matrix_element, count_missed_part_temp = hit_parts_precision(matrix[j][i], copy_part, precision-1)
+        res[j][i] = res_matrix_element
+        count_missed_part += count_missed_part_temp
+    return res, count_missed_part
 
 
 ###############################################################################
@@ -120,13 +131,17 @@ def draw_detector(obj, particles = [], data_rate = [], name = "Boxes",  precisio
           scale[i].SetLineWidth(1)
           scale[i].Draw("l")
       
-      grads[i] = ROOT.TText(x_scale + 0.06, y_scale * (i / 42.) + y_offset/size_ref * (41-i)/41, str(float(max_hits/(42e9)*i))[:4])
+      if i != 0:
+          grads[i] = ROOT.TText(x_scale + 0.06, y_scale * (i / 42.) + y_offset/size_ref * (41-i)/41, str(round(float(max_hits/(42e9)*(i+1)),2)))
+      else:
+          grads[i] = ROOT.TText(x_scale + 0.06, y_scale * (i / 42.) + y_offset/size_ref * (41-i)/41, str(0)[:4])
+
       grads[i].SetTextSize(1./50)
       grads[i].Draw()
-      
+
       c.Update()
       c.Modified()
-  
+
   lfunction = ROOT.TPaveLabel(0.2,y_scale+0.01,0.8,y_scale+0.11,"Data rate by chip [Gbit/s]")
   lfunction.Draw()
 
