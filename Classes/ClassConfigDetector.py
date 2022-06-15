@@ -14,7 +14,7 @@ class Config :
     self.creation_config()
     self._fichier = None
     self._lines = [[]]
-    self._keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_line_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom','dead_zone_chp_top','spcng_chp_x','spcng_chp_y','nb_line_chp_mdl','nb_coln_chp_mdl','spcng_mdl_x','spcng_mdl_y','nb_line_mdl_stv','nb_coln_mdl_stv','spcng_stv_x','spcng_stv_y', 'nb_line_stv','nb_coln_stv','dead_zone_center_x','dead_zone_center_y']
+    self._keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_line_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom','dead_zone_chp_top','spcng_chp_x','spcng_chp_y','nb_line_chp_mdl','nb_coln_chp_mdl','spcng_mdl_x','spcng_mdl_y','nb_line_mdl_stv','nb_coln_mdl_stv','spcng_stv_x','spcng_stv_y', 'nb_line_stv','nb_coln_stv']
    
   #############################################################################
   def ouverture(self):
@@ -24,6 +24,8 @@ class Config :
       fichier = open(self._cfgfile,"r")
     except:
       print("!!! The file provided is not a .txt file present in the current directory !!!")
+      print(f" The given file is : {self._cfgfile} \n \n")
+
     self._fichier = fichier
     
     
@@ -53,7 +55,7 @@ class Config :
   #############################################################################
   def verif_format(self):
     #checks the format of the config.txt file, returns error messages if it is not right
-    keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_line_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom','dead_zone_chp_top','spcng_chp_x','spcng_chp_y','nb_line_chp_mdl','nb_coln_chp_mdl','spcng_mdl_x','spcng_mdl_y','nb_line_mdl_stv','nb_coln_mdl_stv','spcng_stv_x','spcng_stv_y', 'nb_line_stv','nb_coln_stv','dead_zone_center_x','dead_zone_center_y']
+    keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_line_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom','dead_zone_chp_top','spcng_chp_x','spcng_chp_y','nb_line_chp_mdl','nb_coln_chp_mdl','spcng_mdl_x','spcng_mdl_y','nb_line_mdl_stv','nb_coln_mdl_stv','spcng_stv_x','spcng_stv_y', 'nb_line_stv','nb_coln_stv']
     lines = self._lines
     errorMessage = "The file does not correspond to a config file of the detector"
     bool = True
@@ -80,7 +82,7 @@ class Config :
     #remplit les champs du dictionnaire
     #les champs peuvent etre laisses vides
     
-    keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_line_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom','dead_zone_chp_top','spcng_chp_x','spcng_chp_y','nb_line_chp_mdl','nb_coln_chp_mdl','spcng_mdl_x','spcng_mdl_y','nb_line_mdl_stv','nb_coln_mdl_stv','spcng_stv_x','spcng_stv_y','nb_line_stv','nb_coln_stv','dead_zone_center_x','dead_zone_center_y']
+    keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_line_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom','dead_zone_chp_top','spcng_chp_x','spcng_chp_y','nb_line_chp_mdl','nb_coln_chp_mdl','spcng_mdl_x','spcng_mdl_y','nb_line_mdl_stv','nb_coln_mdl_stv','spcng_stv_x','spcng_stv_y','nb_line_stv','nb_coln_stv']
     for k in range(len(keys)): #we fill the dictionary
       if self._lines[k+1][1] != "": #if the information is provided by the user
         self._dict[keys[k]] = int(self._lines[k+1][1])
@@ -117,8 +119,12 @@ class Config :
     total_active_area = active_area_chip * nb_chip_in_det
     area_det = self._dict["wth_det"] * self._dict["hgt_det"]
     area_beam = self._dict["wth_mdl"] * self._dict["hgt_mdl"]
-    active_ratio = float(total_active_area)/(area_det-area_beam)
-    self._dict["active_ratio"] = active_ratio
+    try:
+        active_ratio = float(total_active_area)/(area_det-area_beam)
+        self._dict["active_ratio"] = active_ratio
+    except ZeroDivisionError:
+        print("Zero division active_ratio")
+    
     
     
   #############################################################################
