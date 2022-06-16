@@ -14,7 +14,9 @@ class Config :
     self.creation_config()
     self._fichier = None
     self._lines = [[]]
-    self._keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_line_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom','dead_zone_chp_top','spcng_chp_x','spcng_chp_y','nb_line_chp_mdl','nb_coln_chp_mdl','spcng_mdl_x','spcng_mdl_y','nb_line_mdl_stv','nb_coln_mdl_stv','spcng_stv_x','spcng_stv_y', 'nb_line_stv','nb_coln_stv']
+    self._keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_line_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom',
+                  'dead_zone_chp_top','spcng_chp_x','spcng_chp_y','nb_line_chp_mdl','nb_coln_chp_mdl','mask_dead_column','spcng_mdl_x','spcng_mdl_y','nb_line_mdl_stv',
+                  'nb_coln_mdl_stv','spcng_stv_x','spcng_stv_y', 'nb_line_stv','nb_coln_stv']
    
   #############################################################################
   def ouverture(self):
@@ -55,7 +57,9 @@ class Config :
   #############################################################################
   def verif_format(self):
     #checks the format of the config.txt file, returns error messages if it is not right
-    keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_line_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom','dead_zone_chp_top','spcng_chp_x','spcng_chp_y','nb_line_chp_mdl','nb_coln_chp_mdl','spcng_mdl_x','spcng_mdl_y','nb_line_mdl_stv','nb_coln_mdl_stv','spcng_stv_x','spcng_stv_y', 'nb_line_stv','nb_coln_stv']
+    keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_line_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom','dead_zone_chp_top',
+            'spcng_chp_x','spcng_chp_y','nb_line_chp_mdl','nb_coln_chp_mdl','mask_dead_column','spcng_mdl_x','spcng_mdl_y','nb_line_mdl_stv','nb_coln_mdl_stv','spcng_stv_x',
+            'spcng_stv_y', 'nb_line_stv','nb_coln_stv']
     lines = self._lines
     errorMessage = "The file does not correspond to a config file of the detector"
     bool = True
@@ -82,10 +86,20 @@ class Config :
     #remplit les champs du dictionnaire
     #les champs peuvent etre laisses vides
     
-    keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_line_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom','dead_zone_chp_top','spcng_chp_x','spcng_chp_y','nb_line_chp_mdl','nb_coln_chp_mdl','spcng_mdl_x','spcng_mdl_y','nb_line_mdl_stv','nb_coln_mdl_stv','spcng_stv_x','spcng_stv_y','nb_line_stv','nb_coln_stv']
+    keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_line_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom','dead_zone_chp_top',
+            'spcng_chp_x','spcng_chp_y','nb_line_chp_mdl','nb_coln_chp_mdl','mask_dead_column','spcng_mdl_x','spcng_mdl_y','nb_line_mdl_stv','nb_coln_mdl_stv','spcng_stv_x',
+            'spcng_stv_y','nb_line_stv','nb_coln_stv']
     for k in range(len(keys)): #we fill the dictionary
       if self._lines[k+1][1] != "": #if the information is provided by the user
-        self._dict[keys[k]] = int(self._lines[k+1][1])
+          if keys[k] == 'mask_dead_column' and len(self._lines[k+1][1]) != self._dict['nb_coln_chp_mdl']:
+              print("List of masked chips is not the expected size")
+              print("Nb of coln of chips in module is : " + str(self._dict['nb_coln_chp_mdl']))
+              print("Length of the list of masked chips is : " + str(len(self._lines[k+1][1])))
+              exit()
+          elif keys[k] == 'mask_dead_column':
+              self._dict[keys[k]] = self._lines[k+1][1]
+          else:
+              self._dict[keys[k]] = int(self._lines[k+1][1])
 
     #We fill the width and height fields for every sub-ensemble of the detector
     w = 0
@@ -100,6 +114,12 @@ class Config :
     elif (self._dict["frmt_pxl"]==2):
       w=50
       h=300
+    elif (self._dict["frmt_pxl"]==3):
+      w=150
+      h=50
+    elif (self._dict["frmt_pxl"]==4):
+      w=150
+      h=50
     #width and height for chip
     self._dict["wth_chp"] = (w+self._dict["spcng_pxl_x"])*self._dict['nb_coln_pxl_chp'] - self._dict["spcng_pxl_x"] # n objects n-1 spaces between object
     self._dict["hgt_chp"] = (h+self._dict["spcng_pxl_y"])*self._dict['nb_line_pxl_chp'] - self._dict["spcng_pxl_y"] # n objects n-1 spaces between object

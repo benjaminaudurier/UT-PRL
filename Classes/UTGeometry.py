@@ -14,7 +14,7 @@ ROOT.gROOT.SetBatch(ROOT.kTRUE)
 
 ###############################################################################
 # hit_parts gives the number of particles that hit the rectangle defined by the object self
-def hit_parts(obj, copy_part, count_missed_part):
+def hit_parts(obj, copy_part, count_missed_part, x_pos_parent):
   #particles.list_x and particles.list_y must be sorted (on the x-basis), to optimise the iterative treatment
   x_pos = obj._x_pos
   y_pos = obj._y_pos
@@ -30,7 +30,7 @@ def hit_parts(obj, copy_part, count_missed_part):
     x_part = copy_part[0][i]
     y_part = copy_part[1][i]
 
-    if x_part < x_pos-7*wth:
+    if x_part < x_pos_parent:
       copy_part[0].pop(i)
       copy_part[1].pop(i)
       n -= 1
@@ -48,12 +48,12 @@ def hit_parts(obj, copy_part, count_missed_part):
 
 ###############################################################################
 # hit_parts_precision gives a table of how many particles hit the object of the precision given (0:det - 1:stv - 2:mdl...)
-def hit_parts_precision(obj, copy_part, precision = 3):
+def hit_parts_precision(obj, copy_part, precision = 3, x_pos_parent = -10e20):
   count_missed_part = 0
   #pos_particles is a list [pos_particles_x, pos_particles_y], and pos_particles_x is a copy of particles._list_x
   if precision == 0:
     #here we have reached the last level of the recursion, and the hitparts function is called
-    return hit_parts(obj,copy_part, count_missed_part)
+    return hit_parts(obj,copy_part, count_missed_part, x_pos_parent)
   else:
     matrix = obj._matrix
     nb_line = len(matrix)
@@ -63,7 +63,7 @@ def hit_parts_precision(obj, copy_part, precision = 3):
     for i in range(nb_coln):
       for j in range(nb_line):
         #we recursively call the function on every sub-element of the matrix
-        res_matrix_element, count_missed_part_temp = hit_parts_precision(matrix[j][i], copy_part, precision-1)
+        res_matrix_element, count_missed_part_temp = hit_parts_precision(matrix[j][i], copy_part, precision-1, obj._x_pos)
         res[j][i] = res_matrix_element
         count_missed_part += count_missed_part_temp
     return res, count_missed_part

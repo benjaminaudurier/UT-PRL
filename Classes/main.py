@@ -19,7 +19,7 @@ name_hist_chip = "hist_chip"
 name_hist_module = "hist_module"
 name_plot_stave = "hit_on_stave"
 
-config_detector = "config_detector_jc"
+config_detector = "config_detector_mighty1"
 config_experiment = "config_experiment_pp"
 #config_experiment = "config_experiment_PbPb"
 
@@ -98,6 +98,38 @@ def exclude_beam(res, det, wth_beam, hgt_beam):
     return res
 
 
+def exclude_masked_chip_in_module(res, det):
+    cfg_det = det._cfg
+    masked_chips = cfg_det.get('mask_dead_column')
+    nb_coln_stv = cfg_det.get('nb_coln_stv')
+    nb_line_stv = cfg_det.get('nb_line_stv')
+    nb_coln_mdl_stv = cfg_det.get('nb_coln_mdl_stv')
+    nb_line_mdl_stv = cfg_det.get('nb_line_mdl_stv')
+    nb_coln_chp_mdl = cfg_det.get('nb_coln_chp_mdl')
+    
+    for i_stv in range(nb_line_stv):
+        for j_stv in range(nb_coln_stv):
+            for i_mdl in range(nb_line_mdl_stv):
+                for j_mdl in range(nb_coln_mdl_stv):
+                    for j_chp in range(nb_coln_chp_mdl):
+                        print(masked_chips)
+                        if masked_chips[j_chp] == 0:
+                            res[i_stv][j_stv][i_mdl][j_mdl][:,j_chp] = 0
+                            print(res[i_stv][j_stv][i_mdl][j_mdl][:,j_chp])
+    return res
+
+def exclude_masked_modules(res):  
+    res[0][0][3:7][0][:,:] = 0
+    res[0][1][2:8][0][:,:] = 0
+    res[0][2][1:9][0][:,:] = 0
+    res[0][3][0:10][0][:,:] = 0
+    res[0][4][0:10][0][:,:] = 0
+    res[0][5][1:9][0][:,:] = 0
+    res[0][6][2:8][0][:,:] = 0
+    res[0][7][3:7][0][:,:] = 0
+    return res
+
+
 ################################## MACRO ######################################
 # main reads the config files, create the config objects
 # it creates a detector from the config_detector object
@@ -146,6 +178,10 @@ if __name__ == '__main__':
   
     print(np.max(res))
     res = exclude_beam(res, det, beam_wth, beam_hgt)
+
+    res = exclude_masked_chip_in_module(res, det)
+    res = exclude_masked_modules(res)
+
     print(np.max(res))
     #we have to normalize by number of event
     res_nb_event = res/float(particles._number_of_event)
