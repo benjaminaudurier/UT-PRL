@@ -11,7 +11,7 @@ spcng_pxl_y:0
 #
 # Nb of line/colon of pixel in a chip
 nb_line_pxl_chp:512
-nb_coln_pxl_chp:1024
+nb_coln_pxl_chp:512
 #
 # Dead zone of the chip in um
 dead_zone_chp_left:50
@@ -29,6 +29,7 @@ nb_coln_chp_mdl:6
 #
 # Mask dead column (0 = dead)
 mask_dead_column:1101011010110001100110110101100011
+#
 # Spacing between modules (x and y in um)
 spcng_mdl_x:300
 spcng_mdl_y:300

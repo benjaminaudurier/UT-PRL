@@ -83,12 +83,16 @@ def exclude_beam(res, det, wth_beam, hgt_beam):
                     for i_chp in range(i_chps):
                         for j_chp in range(j_chps):
                             chp = det._matrix[i_stv][j_stv]._matrix[i_mdl][j_mdl]._matrix[i_chp][j_chp]
+                            # top-right corner
                             if (chp._x_pos + wth_chp > -wth_beam/2 and chp._y_pos + hgt_chp > -hgt_beam/2 and chp._x_pos + wth_chp < wth_beam/2 and chp._y_pos + hgt_chp < hgt_beam/2):
                                 res[i_stv][j_stv][i_mdl][j_mdl][i_chp][j_chp] = 0
+                            # bottom-right corner
                             elif (chp._x_pos + wth_chp > -wth_beam/2 and chp._y_pos > -hgt_beam/2 and chp._x_pos + wth_chp < wth_beam/2 and chp._y_pos < hgt_beam/2):
                                 res[i_stv][j_stv][i_mdl][j_mdl][i_chp][j_chp] = 0
+                            # top-left corner
                             elif (chp._x_pos > -wth_beam/2 and chp._y_pos + hgt_chp > -hgt_beam/2 and chp._x_pos < wth_beam/2 and chp._y_pos + hgt_chp < hgt_beam/2):
                                 res[i_stv][j_stv][i_mdl][j_mdl][i_chp][j_chp] = 0
+                            # bottom-left corner
                             elif (chp._x_pos > -wth_beam/2 and chp._y_pos > -hgt_beam/2 and chp._x_pos  < wth_beam/2 and chp._y_pos < hgt_beam/2):
                                 res[i_stv][j_stv][i_mdl][j_mdl][i_chp][j_chp] = 0
     return res
@@ -127,7 +131,7 @@ if __name__ == '__main__':
     hgt_det = cfg_detector.get("hgt_det")
     copy_part = [[],[]]
     for x,y in zip(particles._list_x,particles._list_y):
-        if -wth_det/2<x and x<wth_det/2 and -hgt_det/2<y and y<hgt_det:
+        #if -wth_det/2<x and x<wth_det/2 and -hgt_det/2<y and y<hgt_det:
             copy_part[0].append(x)
             copy_part[1].append(y)
     res, missed_particle_inside_rectangle_wo_central_zone = UTGeometry.hit_parts_precision(det, copy_part, precision = 3)
@@ -140,7 +144,9 @@ if __name__ == '__main__':
     res = np.array(res)
 
   
+    print(np.max(res))
     res = exclude_beam(res, det, beam_wth, beam_hgt)
+    print(np.max(res))
     #we have to normalize by number of event
     res_nb_event = res/float(particles._number_of_event)
     
