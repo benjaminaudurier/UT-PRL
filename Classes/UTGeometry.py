@@ -90,16 +90,19 @@ def draw_detector(obj, particles = [], data_rate = [], name = "Boxes",  precisio
   
   #c = ROOT.TCanvas("c", "title",2000,2000)
   c = ROOT.TCanvas("c")
-  c.SetCanvasSize(2000,2000)
+  c.SetCanvasSize(2000,500)
 
+  #size_ref = max(obj._wth, obj._hgt) * 1.3 # spatial scale
+  x_size_ref = obj._wth * 1.3
+  y_size_ref = obj._hgt * 1.3
   x_origins, y_origins = obj._x_pos, obj._y_pos # reference for the coordinates in the Canvas
-  size_ref = max(obj._wth, obj._hgt) * 1.3 # spatial scale
+  
   x_offset = obj._wth / 10
-  y_offset = obj._hgt / 10
+  y_offset = obj._hgt / 10 
 
 
   max_hits = float(np.max(data_rate))
-  boxes = draw_w_res(obj, size_ref, x_origins - x_offset, y_origins - y_offset, max_hits, np.array(data_rate)) # list of Tboxes representing the object and its subcomponents, colored in the way of a heatmap
+  boxes = draw_w_res(obj, x_size_ref, y_size_ref, x_origins - x_offset, y_origins - y_offset, max_hits, np.array(data_rate)) # list of Tboxes representing the object and its subcomponents, colored in the way of a heatmap
   print("Boxes are created")
   
   for box in tqdm(boxes):
@@ -117,35 +120,44 @@ def draw_detector(obj, particles = [], data_rate = [], name = "Boxes",  precisio
   
   # draw the color scale on the right side
   if max_hits:
-    for i in range (42):
+      magnitude = int(np.log(max_hits)/np.log(10))
+      if magnitude >= 9:
+          magnitude = 9
+      elif magnitude >= 6 and magnitude < 9:
+          magnitude = 6
 
-      if i == 0:
-          scale[i] = ROOT.TBox(x_scale + 0.01, y_scale * (i / 42.) + y_offset/size_ref * (41-i)/41, x_scale+0.05, y_scale * (i+1) / 42.  + y_offset/size_ref * (41-i-1)/41.)
-          scale[i].SetFillColor(0)
-          scale[i].SetLineWidth(1)
-          scale[i].Draw("l")
+      for i in range (42):
+          if i == 0:
+              scale[i] = ROOT.TBox(x_scale + 0.01, y_scale * (i / 42.) + y_offset/y_size_ref * (41-i)/41, x_scale+0.05, y_scale * (i+1) / 42.  + y_offset/y_size_ref * (41-i-1)/41.)
+              scale[i].SetFillColor(0)
+              scale[i].SetLineWidth(0)
+              scale[i].Draw("l")
 
-      else:
-          scale[i] = ROOT.TBox(x_scale + 0.01, y_scale * (i / 42.) + y_offset/size_ref * (41-i)/41, x_scale+0.05, y_scale * (i+1) / 42.  + y_offset/size_ref * (41-i-1)/41.)
-          scale[i].SetFillColor(57 + i)
-          scale[i].SetLineWidth(1)
-          scale[i].Draw("l")
+          else:
+              scale[i] = ROOT.TBox(x_scale + 0.01, y_scale * (i / 42.) + y_offset/y_size_ref * (41-i)/41, x_scale+0.05, y_scale * (i+1) / 42.  + y_offset/y_size_ref * (41-i-1)/41.)
+              scale[i].SetFillColor(57 + i)
+              scale[i].SetLineWidth(0)
+              scale[i].Draw("l")
       
-      if i != 0:
-          grads[i] = ROOT.TText(x_scale + 0.06, y_scale * (i / 42.) + y_offset/size_ref * (41-i)/41, str(round(float(max_hits/(42e9)*(i+1)),2)))
-      else:
-          grads[i] = ROOT.TText(x_scale + 0.06, y_scale * (i / 42.) + y_offset/size_ref * (41-i)/41, str(0)[:4])
 
-      grads[i].SetTextSize(1./50)
-      grads[i].Draw()
+      
 
-      c.Update()
-      c.Modified()
+          if i != 0 and i%4 == 1:
+              grads[i] = ROOT.TText(x_scale + 0.06, y_scale * (i / 42.) + y_offset/y_size_ref * (41-i)/41, str(round(float(max_hits/(42*10**magnitude)*(i+1)),2)))
+              grads[i].SetTextSize(1./20)
+              grads[i].Draw()
 
-  lfunction = ROOT.TPaveLabel(0.2,y_scale+0.01,0.8,y_scale+0.11,"Data rate by chip [Gbit/s]")
-  lfunction.Draw()
+          c.Update()
+          c.Modified()
 
-  axis1 = ROOT.TGaxis(x_offset/size_ref,y_offset/size_ref,x_scale,y_offset/size_ref, -obj._wth/2 * 10 ** -4, obj._wth/2 * 10**-4, 510, "-") 
+  if magnitude == 6:
+      lfunction = ROOT.TPaveLabel(0.2,y_scale+0.01,0.8,y_scale+0.11,"Data rate by chip [Mbit/s]")
+      lfunction.Draw()
+  if magnitude == 9:
+      lfunction = ROOT.TPaveLabel(0.2,y_scale+0.01,0.8,y_scale+0.11,"Data rate by chip [Gbit/s]")
+      lfunction.Draw()
+
+  axis1 = ROOT.TGaxis(x_offset/x_size_ref,y_offset/y_size_ref,x_scale,y_offset/y_size_ref, -obj._wth/2 * 10 ** -4, obj._wth/2 * 10**-4, 510, "-") 
   axis1.SetTitle('[cm]')
   axis1.SetLabelSize(0.02)
   axis1.SetLabelOffset(-0.06)
@@ -154,7 +166,7 @@ def draw_detector(obj, particles = [], data_rate = [], name = "Boxes",  precisio
   
   axis1.Draw()
 
-  axis2 = ROOT.TGaxis(x_offset/size_ref,y_offset/size_ref,x_offset/size_ref,y_scale, -obj._hgt/2 * 10 ** -4, obj._hgt/2 * 10**-4, 510, "+R")
+  axis2 = ROOT.TGaxis(x_offset/x_size_ref,y_offset/y_size_ref,x_offset/x_size_ref,y_scale, -obj._hgt/2 * 10 ** -4, obj._hgt/2 * 10**-4, 510, "+R")
   axis2.SetTitle("[cm]")
   axis2.SetLabelSize(0.02)
   axis2.SetTitleSize(0.02)
@@ -162,7 +174,7 @@ def draw_detector(obj, particles = [], data_rate = [], name = "Boxes",  precisio
   axis2.SetLabelOffset(-0.03)
   axis2.Draw()
 
-  lfunction2 = ROOT.TPaveLabel(x_offset/size_ref, y_offset/size_ref ,x_offset/size_ref + 0.2,y_offset/size_ref + 0.1,f"Missed particles : {str(missed_particles/total_number*100)[:5]} %")
+  lfunction2 = ROOT.TPaveLabel(x_offset/x_size_ref, y_offset/y_size_ref ,x_offset/x_size_ref + 0.2,y_offset/y_size_ref + 0.1,f"Missed particles : {str(missed_particles/total_number*100)[:5]} %")
   lfunction2.Draw()
   c.Update()
   c.Modified()
@@ -177,9 +189,9 @@ def draw_detector(obj, particles = [], data_rate = [], name = "Boxes",  precisio
 #res = impacts on each subcomponent of the object, it also indicates the level of precision of the represnetation (for a module, if res is a simple matrix, the representation will detail to the level of the pixel), np.ndarray
 #x_origins and y_origins gives a reference for the coordinates, float
 #max_hits is the maximum number of hits on an individual subcompononent, typically np.max(res), int
-def draw_w_res(obj, size_ref, x_origins, y_origins, max_hits, res = np.array([])):
+def draw_w_res(obj, x_size_ref, y_size_ref, x_origins, y_origins, max_hits, res = np.array([])):
 
-  box = ROOT.TBox((obj._x_pos - x_origins)/size_ref, (obj._y_pos - y_origins)/size_ref, (obj._x_pos + obj._wth - x_origins)/size_ref, (obj._y_pos + obj._hgt - y_origins)/size_ref)
+  box = ROOT.TBox((obj._x_pos - x_origins)/x_size_ref, (obj._y_pos - y_origins)/y_size_ref, (obj._x_pos + obj._wth - x_origins)/x_size_ref, (obj._y_pos + obj._hgt - y_origins)/y_size_ref)
   boxes = [box]
   if type(res) == list:
     res = np.array(res)
@@ -189,7 +201,7 @@ def draw_w_res(obj, size_ref, x_origins, y_origins, max_hits, res = np.array([])
     assert len(matrix) == len(res) and len(matrix[0]) == len(res[0]), "The matrix of {} and the one of the impacts don't have the same shape : ({},{}) ({},{})".format(obj._type,len(matrix), len(matrix[0]),len(res), len(res[0]))
     for i in range(len(matrix)):
       for j in range(len(matrix[0])):
-        boxes += draw_w_res(matrix[i][j], size_ref, x_origins, y_origins, max_hits, res[i][j])
+        boxes += draw_w_res(matrix[i][j], x_size_ref, y_size_ref, x_origins, y_origins, max_hits, res[i][j])
     box.SetFillColor(1)
     box.SetLineWidth(4)
   

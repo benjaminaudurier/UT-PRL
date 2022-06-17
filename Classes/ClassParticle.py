@@ -63,16 +63,15 @@ class Particle:
     except KeyError:
       print("The config file does not contain the FTHit characteristics \n")
       for entry in tree:#we iterate on every leaf in the tree
-        if entry.HitUTZpos_0/10 > min_z and entry.HitUTZpos_0/10 < max_z:
+         if entry.HitZpos_0/10 > min_z and entry.HitZpos_0/10 < max_z:
 
-            if entry.HitUTXpos_0 < wth_mdl/2 and entry.HitUTXpos_0 > -wth_mdl/2 and entry.HitUTYpos_0 <= hgt_mdl/2 and entry.HitUTYpos_0 >= -hgt_mdl/2:
+            if entry.HitXpos_0 < wth_mdl/2 and entry.HitXpos_0 > -wth_mdl/2 and entry.HitUTYpos_0 <= hgt_mdl/2 and entry.HitUTYpos_0 >= -hgt_mdl/2:
                 #if the particle hits the central zone, it is dissmissed
                 count_particle_hitting_central_zone += 1
 
-         
             #if it hits elsewhere, its coordinates are added to the list of coordinates to study
-            tab_result[0].append(entry.HitUTXpos_0*10e2)
-            tab_result[1].append(entry.HitUTYpos_0*10e2)
+            tab_result[0].append(entry.HitXpos_0*10e2)
+            tab_result[1].append(entry.HitYpos_0*10e2)
             tab_result[2].append(entry.eventNumber)
             
             if entry.eventNumber != eventnumber:#these three lines of code count the number of events present in the experiment

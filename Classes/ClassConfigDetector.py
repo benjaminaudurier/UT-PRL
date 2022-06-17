@@ -118,7 +118,7 @@ class Config :
       w=150
       h=50
     elif (self._dict["frmt_pxl"]==4):
-      w=150
+      w=300
       h=50
     #width and height for chip
     self._dict["wth_chp"] = (w+self._dict["spcng_pxl_x"])*self._dict['nb_coln_pxl_chp'] - self._dict["spcng_pxl_x"] # n objects n-1 spaces between object
