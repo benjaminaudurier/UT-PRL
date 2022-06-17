@@ -4,8 +4,8 @@ Configuration of the experiment
 ## We are interested for the z range, t range, FTHit and we need the mu-factor and the bench-crossing rate of the experiment
 #
 # Fill the interesting z-range in cm
-min_z:1
-max_z:237
+min_z:232
+max_z:234
 #
 # Fill the interesting FTHits-range - do not fill if useless
 min_FTHit:

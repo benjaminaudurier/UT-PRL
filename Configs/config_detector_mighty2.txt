@@ -24,7 +24,7 @@ spcng_chp_x:150
 spcng_chp_y:150
 #
 # Nb of line/colon of chip in a module
-nb_line_chp_mdl:8
+nb_line_chp_mdl:4
 nb_coln_chp_mdl:28
 #
 # Mask dead column (0 = dead)
