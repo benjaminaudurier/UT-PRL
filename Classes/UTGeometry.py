@@ -5,6 +5,7 @@
 ###############################################################################
 
 from __future__ import print_function
+from typing import List
 import numpy as np
 import ROOT
 from tqdm import tqdm
@@ -222,23 +223,68 @@ def draw_w_res(obj, x_size_ref, y_size_ref, x_origins, y_origins, max_hits, res 
   return boxes # Returns a list of TBoxes, ordered in a coherent manner (from biggest to smallest)
 
 
+
 ###############################################################################
 #draw_detector_configuration allows us to vizualize the structure of the detector
-def draw_detector_configuration(det):
-  obj = det
-  size_ref = max(obj._wth, obj._hgt)*1.1
-  colors = [ROOT.kAzure+1,ROOT.kAzure+2,ROOT.kAzure+3,ROOT.kAzure+4]
-  for i in range (3): #Simulate an experiment with 0 impacts
-    boxes = draw_w_res_empty(obj, size_ref, 0.05, 0.05, colors[i], colors[i+1])
-    c = ROOT.TCanvas("","", 1000,1000)
+def draw_detector_configuration(det, folder = "", masked_chip = ""):
+    obj = det
+
+    colors = [ROOT.kAzure+1,ROOT.kAzure+2,ROOT.kAzure+3,ROOT.kAzure+4]
+
+    i = 0
+    c = ROOT.TCanvas("","", int(obj._wth/2000), int(obj._hgt/2000))
+    boxes = []
+    for j in range(8):
+        obj = det._matrix[0][j]
+        boxes += (draw_w_res_empty_stave(obj, det._wth*1.1, det._hgt*1.3, 0.05 + j*obj._wth/(1.1*det._wth), 0.15, colors[i], colors[i+1],j))
+
     for box in tqdm(boxes):
         box.Draw('l')
         c.Update()
         c.Modified()
-    c.Print("../Pictures/" + str(obj._type) + ".png")
-    obj = obj._matrix[0][0]
-    size_ref = max(obj._wth, obj._hgt)*1.1
-  return
+    arrow_hor = ROOT.TArrow(0.05,0.12,0.05+1/1.1,0.12,0.01,"<|>")
+    arrow_hor.Draw()
+    arrow_ver = ROOT.TArrow(0.04,0.15,0.04,0.15+1/1.3,0.01,"<|>")
+    arrow_ver.Draw()
+    xlabel = ROOT.TText(0.5,0.03, str(det._wth/10000) + " cm")
+    xlabel.SetTextSize(0.09)
+    xlabel.Draw()
+    ylabel = ROOT.TText(0.02,0.5, str(det._hgt/10000) + " cm")
+    ylabel.SetTextSize(0.09)
+    ylabel.SetTextAngle(90)
+    ylabel.SetTextAlign(22)
+    ylabel.Draw()
+
+    c.Print("../../Pictures/" + folder + "Detector" + ".png")
+    
+
+
+    obj = det._matrix[0][0]._matrix[0][0]
+    i = 2
+    boxes = draw_w_res_empty_module(obj, obj._wth*1.1, obj._hgt*1.3, 0.05, 0.15, colors[i], colors[i+1], masked_chip = masked_chip)
+
+    c = ROOT.TCanvas("","", int(obj._wth/300),int(obj._hgt/300))
+    
+    for box in tqdm(boxes):
+        box.Draw('l')
+        c.Update()
+        c.Modified()
+    arrow_hor = ROOT.TArrow(0.05,0.12,0.05+1/1.1,0.12,0.01,"<|>")
+    arrow_hor.Draw()
+    arrow_ver = ROOT.TArrow(0.04,0.15,0.04,0.15+1/1.3,0.01,"<|>")
+    arrow_ver.Draw()
+    xlabel = ROOT.TText(0.5,0.03, str(obj._wth/10000) + " cm")
+    xlabel.SetTextSize(0.09)
+    xlabel.Draw()
+    ylabel = ROOT.TText(0.02,0.5, str(obj._hgt/10000) + " cm")
+    ylabel.SetTextSize(0.09)
+    ylabel.SetTextAngle(90)
+    ylabel.SetTextAlign(22)
+    ylabel.Draw()
+    c.Print("../../Pictures/" + folder + "Module" + ".png")
+
+    
+    return
 
 
 
@@ -256,10 +302,65 @@ def draw_w_res_empty(obj, size_ref, x_offset, y_offset, color1, color2):
           little_box = ROOT.TBox(j * wth + x_offset,y_offset +  i * hgt, (j+1) * wth + x_offset, y_offset + (i+1) *hgt)
           little_box.SetFillColor(color2)
           little_box.SetLineColor(color1)
-          little_box.SetLineWidth(4)
+          little_box.SetLineWidth(2)
           boxes.append(little_box)
   return boxes
 
+
+def draw_w_res_empty_module(obj, wth_size_ref, hgt_size_ref, x_offset, y_offset, color1, color2, masked_chip):
+  box = ROOT.TBox(x_offset, y_offset, x_offset + obj._wth/wth_size_ref, y_offset + obj._hgt/hgt_size_ref)
+  box.SetFillColor(color1)
+  boxes = [box]
+  
+  matrix = obj._matrix
+  wth =  matrix[0][0]._wth/wth_size_ref
+  hgt =  matrix[0][0]._hgt/hgt_size_ref
+
+  for i in range(len(matrix)):
+      for j in range(len(matrix[0])):
+          little_box = ROOT.TBox(j * wth + x_offset,y_offset +  i * hgt, (j+1) * wth + x_offset, y_offset + (i+1) *hgt)
+          if masked_chip[j] == "0":
+              little_box.SetFillColor(color1)
+              little_box.SetLineColor(color1)
+          if masked_chip[j] == "1":
+              little_box.SetFillColor(color2)
+              little_box.SetLineColor(color1)
+          little_box.SetLineWidth(2)
+          boxes.append(little_box)
+  return boxes
+
+
+def draw_w_res_empty_stave(obj, wth_size_ref, hgt_size_ref, x_offset, y_offset, color1, color2, order_stave):
+  box = ROOT.TBox(x_offset, y_offset, x_offset + obj._wth/wth_size_ref, y_offset + obj._hgt/hgt_size_ref)
+  box.SetFillColor(color1)
+  boxes = [box]
+  
+  matrix = obj._matrix
+  wth =  matrix[0][0]._wth/wth_size_ref
+  hgt =  matrix[0][0]._hgt/hgt_size_ref
+
+  if order_stave == 0 or order_stave == 7:
+      list_disabled_module = "0001111000"
+  if order_stave == 1 or order_stave == 6:
+      list_disabled_module = "0011111100"
+  if order_stave == 2 or order_stave == 5:
+      list_disabled_module = "0111111110"
+  if order_stave == 3 or order_stave == 4:
+      list_disabled_module = "1111111111"
+
+  print(list_disabled_module)
+  for i in range(len(matrix)):
+      for j in range(len(matrix[0])):
+          little_box = ROOT.TBox(j * wth + x_offset,y_offset +  i * hgt, (j+1) * wth + x_offset, y_offset + (i+1) *hgt)
+          if list_disabled_module[i] == "0":
+              little_box.SetFillColor(color1)
+              little_box.SetLineColor(color1)
+          if list_disabled_module[i] == "1":
+              little_box.SetFillColor(color2)
+              little_box.SetLineColor(color1)
+          little_box.SetLineWidth(4)
+          boxes.append(little_box)
+  return boxes
 
 ###################################### PIXEL ##################################
 # a pixel is a rectangle in the plane

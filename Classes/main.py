@@ -20,9 +20,9 @@ name_hist_chip = "hist_chip"
 name_hist_module = "hist_module"
 name_plot_stave = "hit_on_stave"
 
-config_detector = "config_detector_mighty2"
+config_detector = "config_detector_mighty3"
 config_experiment = "config_experiment_pp_mighty"
-#config_experiment = "config_experiment_PbPb"
+#config_experiment = "config_experiment_PbPb_mighty"
 
 beam_wth = 20e4 # in um
 beam_hgt = 20e4
@@ -190,6 +190,10 @@ if __name__ == '__main__':
     missed_particle_inside_rectangle_wo_central_zone = 0
     """
     res = np.array(res)
+
+    print('\n \n \n')
+    print(np.sum(res))
+    print('\n \n \n')
 
     res = exclude_beam(res, det, beam_wth, beam_hgt)
     res = exclude_masked_chip_in_module(res, det)
