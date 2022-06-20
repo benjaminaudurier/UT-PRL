@@ -139,10 +139,22 @@ if __name__ == '__main__':
   
     res = np.array(res)
 
+    print('\n \n \n')
+    print(total_number)
+    print('\n \n \n')
+
+    print('\n \n \n')
+    print(np.sum(res))
+    print('\n \n \n')
+
   
     res = exclude_beam(res, det, beam_wth, beam_hgt)
     #we have to normalize by number of event
     res_nb_event = res/float(particles._number_of_event)
+
+    print('\n \n \n')
+    print(np.sum(res))
+    print('\n \n \n')
     
     #we create a matrix called datarate of the same size than res, containing the datarate by chip  
     event_rate = cfg_exp.get("event_rate")*10**(3) 
