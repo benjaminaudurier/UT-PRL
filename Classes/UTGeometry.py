@@ -5,6 +5,7 @@
 ###############################################################################
 
 from __future__ import print_function
+from typing import List
 import numpy as np
 import ROOT
 from tqdm import tqdm
@@ -14,7 +15,7 @@ ROOT.gROOT.SetBatch(ROOT.kTRUE)
 
 ###############################################################################
 # hit_parts gives the number of particles that hit the rectangle defined by the object self
-def hit_parts(obj, copy_part, count_missed_part):
+def hit_parts(obj, copy_part, count_missed_part, x_pos_parent):
   #particles.list_x and particles.list_y must be sorted (on the x-basis), to optimise the iterative treatment
   x_pos = obj._x_pos
   y_pos = obj._y_pos
@@ -30,7 +31,7 @@ def hit_parts(obj, copy_part, count_missed_part):
     x_part = copy_part[0][i]
     y_part = copy_part[1][i]
 
-    if x_part < x_pos-7*wth:
+    if x_part < x_pos_parent:
       copy_part[0].pop(i)
       copy_part[1].pop(i)
       n -= 1
@@ -48,12 +49,12 @@ def hit_parts(obj, copy_part, count_missed_part):
 
 ###############################################################################
 # hit_parts_precision gives a table of how many particles hit the object of the precision given (0:det - 1:stv - 2:mdl...)
-def hit_parts_precision(obj, copy_part, precision = 3):
+def hit_parts_precision(obj, copy_part, precision = 3, x_pos_parent = -10e20):
   count_missed_part = 0
   #pos_particles is a list [pos_particles_x, pos_particles_y], and pos_particles_x is a copy of particles._list_x
   if precision == 0:
     #here we have reached the last level of the recursion, and the hitparts function is called
-    return hit_parts(obj,copy_part, count_missed_part)
+    return hit_parts(obj,copy_part, count_missed_part, x_pos_parent)
   else:
     matrix = obj._matrix
     nb_line = len(matrix)
@@ -63,7 +64,7 @@ def hit_parts_precision(obj, copy_part, precision = 3):
     for i in range(nb_coln):
       for j in range(nb_line):
         #we recursively call the function on every sub-element of the matrix
-        res_matrix_element, count_missed_part_temp = hit_parts_precision(matrix[j][i], copy_part, precision-1)
+        res_matrix_element, count_missed_part_temp = hit_parts_precision(matrix[j][i], copy_part, precision-1, obj._x_pos)
         res[j][i] = res_matrix_element
         count_missed_part += count_missed_part_temp
     return res, count_missed_part
@@ -90,16 +91,19 @@ def draw_detector(obj, particles = [], data_rate = [], name = "Boxes",  precisio
   
   #c = ROOT.TCanvas("c", "title",2000,2000)
   c = ROOT.TCanvas("c")
-  c.SetCanvasSize(2000,2000)
+  c.SetCanvasSize(2000,500)
 
+  #size_ref = max(obj._wth, obj._hgt) * 1.3 # spatial scale
+  x_size_ref = obj._wth * 1.3
+  y_size_ref = obj._hgt * 1.3
   x_origins, y_origins = obj._x_pos, obj._y_pos # reference for the coordinates in the Canvas
-  size_ref = max(obj._wth, obj._hgt) * 1.3 # spatial scale
+  
   x_offset = obj._wth / 10
-  y_offset = obj._hgt / 10
+  y_offset = obj._hgt / 10 
 
 
   max_hits = float(np.max(data_rate))
-  boxes = draw_w_res(obj, size_ref, x_origins - x_offset, y_origins - y_offset, max_hits, np.array(data_rate)) # list of Tboxes representing the object and its subcomponents, colored in the way of a heatmap
+  boxes = draw_w_res(obj, x_size_ref, y_size_ref, x_origins - x_offset, y_origins - y_offset, max_hits, np.array(data_rate)) # list of Tboxes representing the object and its subcomponents, colored in the way of a heatmap
   print("Boxes are created")
   
   for box in tqdm(boxes):
@@ -117,35 +121,44 @@ def draw_detector(obj, particles = [], data_rate = [], name = "Boxes",  precisio
   
   # draw the color scale on the right side
   if max_hits:
-    for i in range (42):
+      magnitude = int(np.log(max_hits)/np.log(10))
+      if magnitude >= 9:
+          magnitude = 9
+      elif magnitude >= 6 and magnitude < 9:
+          magnitude = 6
 
-      if i == 0:
-          scale[i] = ROOT.TBox(x_scale + 0.01, y_scale * (i / 42.) + y_offset/size_ref * (41-i)/41, x_scale+0.05, y_scale * (i+1) / 42.  + y_offset/size_ref * (41-i-1)/41.)
-          scale[i].SetFillColor(0)
-          scale[i].SetLineWidth(1)
-          scale[i].Draw("l")
+      for i in range (42):
+          if i == 0:
+              scale[i] = ROOT.TBox(x_scale + 0.01, y_scale * (i / 42.) + y_offset/y_size_ref * (41-i)/41, x_scale+0.05, y_scale * (i+1) / 42.  + y_offset/y_size_ref * (41-i-1)/41.)
+              scale[i].SetFillColor(0)
+              scale[i].SetLineWidth(0)
+              scale[i].Draw("l")
 
-      else:
-          scale[i] = ROOT.TBox(x_scale + 0.01, y_scale * (i / 42.) + y_offset/size_ref * (41-i)/41, x_scale+0.05, y_scale * (i+1) / 42.  + y_offset/size_ref * (41-i-1)/41.)
-          scale[i].SetFillColor(57 + i)
-          scale[i].SetLineWidth(1)
-          scale[i].Draw("l")
+          else:
+              scale[i] = ROOT.TBox(x_scale + 0.01, y_scale * (i / 42.) + y_offset/y_size_ref * (41-i)/41, x_scale+0.05, y_scale * (i+1) / 42.  + y_offset/y_size_ref * (41-i-1)/41.)
+              scale[i].SetFillColor(57 + i)
+              scale[i].SetLineWidth(0)
+              scale[i].Draw("l")
       
-      if i != 0:
-          grads[i] = ROOT.TText(x_scale + 0.06, y_scale * (i / 42.) + y_offset/size_ref * (41-i)/41, str(round(float(max_hits/(42e9)*(i+1)),2)))
-      else:
-          grads[i] = ROOT.TText(x_scale + 0.06, y_scale * (i / 42.) + y_offset/size_ref * (41-i)/41, str(0)[:4])
 
-      grads[i].SetTextSize(1./50)
-      grads[i].Draw()
+      
 
-      c.Update()
-      c.Modified()
+          if i != 0 and i%4 == 1:
+              grads[i] = ROOT.TText(x_scale + 0.06, y_scale * (i / 42.) + y_offset/y_size_ref * (41-i)/41, str(round(float(max_hits/(42*10**magnitude)*(i+1)),2)))
+              grads[i].SetTextSize(1./20)
+              grads[i].Draw()
 
-  lfunction = ROOT.TPaveLabel(0.2,y_scale+0.01,0.8,y_scale+0.11,"Data rate by chip [Gbit/s]")
-  lfunction.Draw()
+          c.Update()
+          c.Modified()
 
-  axis1 = ROOT.TGaxis(x_offset/size_ref,y_offset/size_ref,x_scale,y_offset/size_ref, -obj._wth/2 * 10 ** -4, obj._wth/2 * 10**-4, 510, "-") 
+  if magnitude == 6:
+      lfunction = ROOT.TPaveLabel(0.2,y_scale+0.01,0.8,y_scale+0.11,"Data rate by chip [Mbit/s]")
+      lfunction.Draw()
+  if magnitude == 9:
+      lfunction = ROOT.TPaveLabel(0.2,y_scale+0.01,0.8,y_scale+0.11,"Data rate by chip [Gbit/s]")
+      lfunction.Draw()
+
+  axis1 = ROOT.TGaxis(x_offset/x_size_ref,y_offset/y_size_ref,x_scale,y_offset/y_size_ref, -obj._wth/2 * 10 ** -4, obj._wth/2 * 10**-4, 510, "-") 
   axis1.SetTitle('[cm]')
   axis1.SetLabelSize(0.02)
   axis1.SetLabelOffset(-0.06)
@@ -154,7 +167,7 @@ def draw_detector(obj, particles = [], data_rate = [], name = "Boxes",  precisio
   
   axis1.Draw()
 
-  axis2 = ROOT.TGaxis(x_offset/size_ref,y_offset/size_ref,x_offset/size_ref,y_scale, -obj._hgt/2 * 10 ** -4, obj._hgt/2 * 10**-4, 510, "+R")
+  axis2 = ROOT.TGaxis(x_offset/x_size_ref,y_offset/y_size_ref,x_offset/x_size_ref,y_scale, -obj._hgt/2 * 10 ** -4, obj._hgt/2 * 10**-4, 510, "+R")
   axis2.SetTitle("[cm]")
   axis2.SetLabelSize(0.02)
   axis2.SetTitleSize(0.02)
@@ -162,7 +175,7 @@ def draw_detector(obj, particles = [], data_rate = [], name = "Boxes",  precisio
   axis2.SetLabelOffset(-0.03)
   axis2.Draw()
 
-  lfunction2 = ROOT.TPaveLabel(x_offset/size_ref, y_offset/size_ref ,x_offset/size_ref + 0.2,y_offset/size_ref + 0.1,f"Missed particles : {str(missed_particles/total_number*100)[:5]} %")
+  lfunction2 = ROOT.TPaveLabel(x_offset/x_size_ref, y_offset/y_size_ref ,x_offset/x_size_ref + 0.2,y_offset/y_size_ref + 0.1,f"Missed particles : {str(missed_particles/total_number*100)[:5]} %")
   lfunction2.Draw()
   c.Update()
   c.Modified()
@@ -177,9 +190,9 @@ def draw_detector(obj, particles = [], data_rate = [], name = "Boxes",  precisio
 #res = impacts on each subcomponent of the object, it also indicates the level of precision of the represnetation (for a module, if res is a simple matrix, the representation will detail to the level of the pixel), np.ndarray
 #x_origins and y_origins gives a reference for the coordinates, float
 #max_hits is the maximum number of hits on an individual subcompononent, typically np.max(res), int
-def draw_w_res(obj, size_ref, x_origins, y_origins, max_hits, res = np.array([])):
+def draw_w_res(obj, x_size_ref, y_size_ref, x_origins, y_origins, max_hits, res = np.array([])):
 
-  box = ROOT.TBox((obj._x_pos - x_origins)/size_ref, (obj._y_pos - y_origins)/size_ref, (obj._x_pos + obj._wth - x_origins)/size_ref, (obj._y_pos + obj._hgt - y_origins)/size_ref)
+  box = ROOT.TBox((obj._x_pos - x_origins)/x_size_ref, (obj._y_pos - y_origins)/y_size_ref, (obj._x_pos + obj._wth - x_origins)/x_size_ref, (obj._y_pos + obj._hgt - y_origins)/y_size_ref)
   boxes = [box]
   if type(res) == list:
     res = np.array(res)
@@ -189,7 +202,7 @@ def draw_w_res(obj, size_ref, x_origins, y_origins, max_hits, res = np.array([])
     assert len(matrix) == len(res) and len(matrix[0]) == len(res[0]), "The matrix of {} and the one of the impacts don't have the same shape : ({},{}) ({},{})".format(obj._type,len(matrix), len(matrix[0]),len(res), len(res[0]))
     for i in range(len(matrix)):
       for j in range(len(matrix[0])):
-        boxes += draw_w_res(matrix[i][j], size_ref, x_origins, y_origins, max_hits, res[i][j])
+        boxes += draw_w_res(matrix[i][j], x_size_ref, y_size_ref, x_origins, y_origins, max_hits, res[i][j])
     box.SetFillColor(1)
     box.SetLineWidth(4)
   
@@ -210,23 +223,68 @@ def draw_w_res(obj, size_ref, x_origins, y_origins, max_hits, res = np.array([])
   return boxes # Returns a list of TBoxes, ordered in a coherent manner (from biggest to smallest)
 
 
+
 ###############################################################################
 #draw_detector_configuration allows us to vizualize the structure of the detector
-def draw_detector_configuration(det):
-  obj = det
-  size_ref = max(obj._wth, obj._hgt)*1.1
-  colors = [ROOT.kAzure+1,ROOT.kAzure+2,ROOT.kAzure+3,ROOT.kAzure+4]
-  for i in range (3): #Simulate an experiment with 0 impacts
-    boxes = draw_w_res_empty(obj, size_ref, 0.05, 0.05, colors[i], colors[i+1])
-    c = ROOT.TCanvas("","", 1000,1000)
+def draw_detector_configuration(det, folder = "", masked_chip = ""):
+    obj = det
+
+    colors = [ROOT.kAzure+1,ROOT.kAzure+2,ROOT.kAzure+3,ROOT.kAzure+4]
+
+    i = 0
+    c = ROOT.TCanvas("","", int(obj._wth/2000), int(obj._hgt/2000))
+    boxes = []
+    for j in range(8):
+        obj = det._matrix[0][j]
+        boxes += (draw_w_res_empty_stave(obj, det._wth*1.1, det._hgt*1.3, 0.05 + j*obj._wth/(1.1*det._wth), 0.15, colors[i], colors[i+1],j))
+
     for box in tqdm(boxes):
         box.Draw('l')
         c.Update()
         c.Modified()
-    c.Print("../Pictures/" + str(obj._type) + ".png")
-    obj = obj._matrix[0][0]
-    size_ref = max(obj._wth, obj._hgt)*1.1
-  return
+    arrow_hor = ROOT.TArrow(0.05,0.12,0.05+1/1.1,0.12,0.01,"<|>")
+    arrow_hor.Draw()
+    arrow_ver = ROOT.TArrow(0.04,0.15,0.04,0.15+1/1.3,0.01,"<|>")
+    arrow_ver.Draw()
+    xlabel = ROOT.TText(0.5,0.03, str(det._wth/10000) + " cm")
+    xlabel.SetTextSize(0.09)
+    xlabel.Draw()
+    ylabel = ROOT.TText(0.02,0.5, str(det._hgt/10000) + " cm")
+    ylabel.SetTextSize(0.09)
+    ylabel.SetTextAngle(90)
+    ylabel.SetTextAlign(22)
+    ylabel.Draw()
+
+    c.Print("../../Pictures/" + folder + "Detector" + ".png")
+    
+
+
+    obj = det._matrix[0][0]._matrix[0][0]
+    i = 2
+    boxes = draw_w_res_empty_module(obj, obj._wth*1.1, obj._hgt*1.3, 0.05, 0.15, colors[i], colors[i+1], masked_chip = masked_chip)
+
+    c = ROOT.TCanvas("","", int(obj._wth/300),int(obj._hgt/300))
+    
+    for box in tqdm(boxes):
+        box.Draw('l')
+        c.Update()
+        c.Modified()
+    arrow_hor = ROOT.TArrow(0.05,0.12,0.05+1/1.1,0.12,0.01,"<|>")
+    arrow_hor.Draw()
+    arrow_ver = ROOT.TArrow(0.04,0.15,0.04,0.15+1/1.3,0.01,"<|>")
+    arrow_ver.Draw()
+    xlabel = ROOT.TText(0.5,0.03, str(obj._wth/10000) + " cm")
+    xlabel.SetTextSize(0.09)
+    xlabel.Draw()
+    ylabel = ROOT.TText(0.02,0.5, str(obj._hgt/10000) + " cm")
+    ylabel.SetTextSize(0.09)
+    ylabel.SetTextAngle(90)
+    ylabel.SetTextAlign(22)
+    ylabel.Draw()
+    c.Print("../../Pictures/" + folder + "Module" + ".png")
+
+    
+    return
 
 
 
@@ -244,10 +302,65 @@ def draw_w_res_empty(obj, size_ref, x_offset, y_offset, color1, color2):
           little_box = ROOT.TBox(j * wth + x_offset,y_offset +  i * hgt, (j+1) * wth + x_offset, y_offset + (i+1) *hgt)
           little_box.SetFillColor(color2)
           little_box.SetLineColor(color1)
-          little_box.SetLineWidth(4)
+          little_box.SetLineWidth(2)
           boxes.append(little_box)
   return boxes
 
+
+def draw_w_res_empty_module(obj, wth_size_ref, hgt_size_ref, x_offset, y_offset, color1, color2, masked_chip):
+  box = ROOT.TBox(x_offset, y_offset, x_offset + obj._wth/wth_size_ref, y_offset + obj._hgt/hgt_size_ref)
+  box.SetFillColor(color1)
+  boxes = [box]
+  
+  matrix = obj._matrix
+  wth =  matrix[0][0]._wth/wth_size_ref
+  hgt =  matrix[0][0]._hgt/hgt_size_ref
+
+  for i in range(len(matrix)):
+      for j in range(len(matrix[0])):
+          little_box = ROOT.TBox(j * wth + x_offset,y_offset +  i * hgt, (j+1) * wth + x_offset, y_offset + (i+1) *hgt)
+          if masked_chip[j] == "0":
+              little_box.SetFillColor(color1)
+              little_box.SetLineColor(color1)
+          if masked_chip[j] == "1":
+              little_box.SetFillColor(color2)
+              little_box.SetLineColor(color1)
+          little_box.SetLineWidth(2)
+          boxes.append(little_box)
+  return boxes
+
+
+def draw_w_res_empty_stave(obj, wth_size_ref, hgt_size_ref, x_offset, y_offset, color1, color2, order_stave):
+  box = ROOT.TBox(x_offset, y_offset, x_offset + obj._wth/wth_size_ref, y_offset + obj._hgt/hgt_size_ref)
+  box.SetFillColor(color1)
+  boxes = [box]
+  
+  matrix = obj._matrix
+  wth =  matrix[0][0]._wth/wth_size_ref
+  hgt =  matrix[0][0]._hgt/hgt_size_ref
+
+  if order_stave == 0 or order_stave == 7:
+      list_disabled_module = "0001111000"
+  if order_stave == 1 or order_stave == 6:
+      list_disabled_module = "0011111100"
+  if order_stave == 2 or order_stave == 5:
+      list_disabled_module = "0111111110"
+  if order_stave == 3 or order_stave == 4:
+      list_disabled_module = "1111111111"
+
+  print(list_disabled_module)
+  for i in range(len(matrix)):
+      for j in range(len(matrix[0])):
+          little_box = ROOT.TBox(j * wth + x_offset,y_offset +  i * hgt, (j+1) * wth + x_offset, y_offset + (i+1) *hgt)
+          if list_disabled_module[i] == "0":
+              little_box.SetFillColor(color1)
+              little_box.SetLineColor(color1)
+          if list_disabled_module[i] == "1":
+              little_box.SetFillColor(color2)
+              little_box.SetLineColor(color1)
+          little_box.SetLineWidth(4)
+          boxes.append(little_box)
+  return boxes
 
 ###################################### PIXEL ##################################
 # a pixel is a rectangle in the plane
