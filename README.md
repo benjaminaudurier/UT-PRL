@@ -31,9 +31,9 @@ number of hit, and a plot and the number of hit/number of stave.
 - the plots are stored in the Pictures/ folder created
 
 ### Examples :
-- `python main.py --detector UT --MC_tracks ../../MCtracks-PbPbcentral.root` --config_detector cfg_detector_ut1 --config_experiment config_experiment_PbPb_ut --all_plots` will create all the plots for a PbPb simulation and for the detector describe in config_detector1.txt
-- `python main.py --detector MIGHTY --config_detector cfg_detector_mighty1 --geometry_plots` will create the geometry plots for the detector describe in config_detector_mighty1.txt
-- `python main.py --detector MIGHTY --MC_tracks ../../MCtracks-pptest-5000.root` --config_detector cfg_detector_mighty3 --config_experiment config_experiment_pp_mighty --mc_plots --hit_plots` will create all the plots but the ones concerning the geometry for a pp simulation and for the detector describe in config_detector_mighty3.txt
+- `python main.py --detector UT --MC_tracks ../../MCtracks-PbPbcentral.root --config_detector cfg_detector_ut1 --config_experiment config_experiment_PbPb_ut --all_plots` will create all the plots for a PbPb simulation and for the detector describe in config_detector1.txt
+- `python main.py --detector MIGHTY --config_detector cfg_detector_mighty1 --geometry_plots will create the geometry plots for the detector describe in config_detector_mighty1.txt
+- `python main.py --detector MIGHTY --MC_tracks ../../MCtracks-pptest-5000.root --config_detector cfg_detector_mighty3 --config_experiment config_experiment_pp_mighty --mc_plots --hit_plots` will create all the plots but the ones concerning the geometry for a pp simulation and for the detector describe in config_detector_mighty3.txt
 
 ## HOTTEST CHIPS SEVERAL GEOMETRIES
 
