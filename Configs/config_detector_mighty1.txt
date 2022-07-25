@@ -9,8 +9,8 @@ frmt_pxl:0
 spcng_pxl_x:0
 spcng_pxl_y:0
 #
-# Nb of line/colon of pixel in a chip
-nb_line_pxl_chp:512
+# Nb of row/colon of pixel in a chip
+nb_row_pxl_chp:512
 nb_coln_pxl_chp:512
 #
 # Dead zone of the chip in um
@@ -23,25 +23,25 @@ dead_zone_chp_top:50
 spcng_chp_x:150
 spcng_chp_y:150
 #
-# Nb of line/colon of chip in a module
-nb_line_chp_mdl:6
+# Nb of row/colon of chip in a module
+nb_row_chp_mdl:6
 nb_coln_chp_mdl:34
 #
-# Mask dead column (0 = dead)
+# Only for MIGHTY - Mask dead column (0 = dead)
 mask_dead_column:1101011010110001100110110101100011
 #
 # Spacing between modules (x and y in um)
 spcng_mdl_x:300
 spcng_mdl_y:300
 #
-# Nb of line/colon of module in a stave
-nb_line_mdl_stv:10
+# Nb of row/colon of module in a stave
+nb_row_mdl_stv:10
 nb_coln_mdl_stv:1
 #
 # Spacing between staves (x and y in um)
 spcng_stv_x:100 
 spcng_stv_y:100
 #
-# Nb of line/colon of stave
-nb_line_stv:1
+# Nb of row/colon of stave
+nb_row_stv:1
 nb_coln_stv:8

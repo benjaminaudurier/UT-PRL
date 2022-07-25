@@ -12,7 +12,7 @@ class Config :
     self._dict = {} #contains the keys and their values
     self._is_cfg_study_zone = True
     self._is_cfg_detector = False
-    self._lines = [[]]
+    self._rows = [[]]
     self.creation_config()
     self._fichier = None
     self._keys = ["min_z","max_z","min_FTHit","max_FTHit","event_rate","nb_of_bit_BX_id"]
@@ -31,8 +31,8 @@ class Config :
     
   #############################################################################
   def text_to_list(self):
-    #takes an opened .txt file, removes the useless lines, returns a list [("info type", value)]
-    #removes the commented lines in the entry; each line with a #is a commented line
+    #takes an opened .txt file, removes the useless rows, returns a list [("info type", value)]
+    #removes the commented rows in the entry; each row with a #is a commented row
     
     try:#checking that self is an open file
       lines = self._fichier.readlines()

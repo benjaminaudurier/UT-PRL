@@ -12,84 +12,73 @@ from tqdm import tqdm
 ###############################################################################
 class Particle:
 
-  def __init__(self, tree, cfg_sz, cfg_detector):
-    list_x = []
-    list_y = []
-    list_eventNumber = []
-    
-    min_z = cfg_sz.get("min_z")
-    max_z = cfg_sz.get("max_z")
-    compteur = 0
-    
-    # data for the center module which will be dead to let pass the paritcles beam
-    # we convert the wth_mdl from micrometer to millimeter to be adapted to the data contained in tree
-    wth_mdl = cfg_detector.get("wth_mdl")*10**-3
-    hgt_mdl = cfg_detector.get("hgt_mdl")*10**-3
+    def __init__(self, tree, cfg_exp, cfg_detector, detector = "UT"):
 
-    count_particle_hitting_central_zone = 0
+        min_z = cfg_exp.get("min_z")
+        max_z = cfg_exp.get("max_z")
+        compteur = 0
+    
+        count_particle_hitting_central_zone = 0
     
     
-    tab_result = [[],[], []]
+        tab_result = [[],[], []]
     
-    number_of_event = 0
-    eventnumber = 0
+        number_of_event = 0
+        eventnumber = 0
     
     
-    # we try if the config_sz file has the FThits characteristics
-    try:
-      #if it does :
-      min_FTHit = cfg_sz.get("min_FTHit")
-      max_FTHit = cfg_sz.get("max_FTHit")
-      print("The config_study_zone file does the FTHit characteristics \n")
-      
-      for entry in tqdm(tree): #we iterate on every leaf in the tree
-        if entry.nFThits > min_FTHit and entry.nFThits < max_FTHit and entry.HitUTZpos_0/10 > min_z and entry.HitUTZpos_0/10 < max_z:
-          
-            if entry.HitUTXpos_0 < wth_mdl/2 and entry.HitUTXpos_0 > -wth_mdl/2 and entry.HitUTYpos_0 <= hgt_mdl/2 and entry.HitUTYpos_0 >= -hgt_mdl/2:
-                #if the particle hits the central zone, it is dissmissed
-                count_particle_hitting_central_zone += 1
-            
-            #if it hits elsewhere, its coordinates are added to the list of coordinates to study
-            tab_result[0].append(entry.HitUTXpos_0*10e2)
-            tab_result[1].append(entry.HitUTYpos_0*10e2)
-            
-            if entry.eventNumber != eventnumber: #these three lines of code count the number of events present in the experiment
-              eventnumber = entry.eventNumber
-              number_of_event += 1
-            
-            compteur+=1
-            print("particle n {}".format(compteur) + " treated", end = '\r')
+        # we try if the config_ file has the FThits characteristicsto know on what to filter
+        try:
+            min_FTHit = cfg_exp.get("min_FTHit")
+            max_FTHit = cfg_exp.get("max_FTHit")
+            contain_FT_hit = True
+            print("The config_study_zone file does contain the FTHit characteristics \n")
+        except KeyError:
+            contain_FT_hit = False
+            print("The config file does not contain the FTHit characteristics \n")
 
-    except KeyError:
-      print("The config file does not contain the FTHit characteristics \n")
-      for entry in tree:#we iterate on every leaf in the tree
-         if entry.HitZpos_0/10 > min_z and entry.HitZpos_0/10 < max_z:
+        for entry in tqdm(tree):
 
-            if entry.HitXpos_0 < wth_mdl/2 and entry.HitXpos_0 > -wth_mdl/2 and entry.HitUTYpos_0 <= hgt_mdl/2 and entry.HitUTYpos_0 >= -hgt_mdl/2:
-                #if the particle hits the central zone, it is dissmissed
-                count_particle_hitting_central_zone += 1
+            # for each different configuration, we have to know on what characteristic we have to filter
+            # entry_is_in_range represents that boolean stating that this entry is useful for the study or not
+            if detector == "UT":
+                if contain_FT_hit:
+                    entry_is_in_range = entry.nFThits > min_FTHit and entry.nFThits < max_FTHit and entry.HitUTZpos_0/10 > min_z and entry.HitUTZpos_0/10 < max_z
+                else:
+                    entry_is_in_range = entry.HitUTZpos_0/10 > min_z and entry.HitUTZpos_0/10 < max_z
+            elif detector == "MIGHTY":
+                if contain_FT_hit:
+                    entry_is_in_range = entry.nFThits > min_FTHit and entry.nFThits < max_FTHit and entry.HitZpos_0/10 > min_z and entry.HitZpos_0/10 < max_z
+                else:
+                    entry_is_in_range = entry.HitZpos_0/10 > min_z and entry.HitZpos_0/10 < max_z
 
-            #if it hits elsewhere, its coordinates are added to the list of coordinates to study
-            tab_result[0].append(entry.HitXpos_0*10e2)
-            tab_result[1].append(entry.HitYpos_0*10e2)
-            tab_result[2].append(entry.eventNumber)
+            # if entry is in range, it is added to the list of interesting particles
+            if entry_is_in_range:
+                if detector == "UT":
+                    tab_result[0].append(entry.HitUTXpos_0*10e2)
+                    tab_result[1].append(entry.HitUTYpos_0*10e2)
+                    tab_result[2].append(entry.eventNumber)
+                if detector == "MIGHTY":
+                    tab_result[0].append(entry.HitXpos_0*10e2)
+                    tab_result[1].append(entry.HitYpos_0*10e2)
+                    tab_result[2].append(entry.eventNumber)
+
+                if entry.eventNumber != eventnumber: #these three lines of code count the number of events present in the experiment
+                    eventnumber = entry.eventNumber
+                    number_of_event += 1
             
-            if entry.eventNumber != eventnumber:#these three lines of code count the number of events present in the experiment
-                eventnumber = entry.eventNumber
-                number_of_event += 1
-            
-            compteur+=1
-            print("particle n {}".format(compteur) + " treated", end = '\r')
+                compteur+=1
 
     
-    tab_result = np.array(tab_result)
-    n = len(tab_result[0])
-    parts = [[tab_result[0][i],tab_result[1][i],tab_result[2][i]] for i in range(n)]
-    parts = np.array(parts)
-    parts = np.array(sorted(parts,key = lambda x:x[0]))
-    self._list_x = list(parts[:,0])
-    self._list_y = list(parts[:,1])
-    self._number_of_event = number_of_event
-    self._count_particle_hitting_central_zone = count_particle_hitting_central_zone
+        tab_result = np.array(tab_result)
+        n = len(tab_result[0])
+        parts = [[tab_result[0][i],tab_result[1][i],tab_result[2][i]] for i in range(n)]
+        parts = np.array(parts)
+        parts = np.array(sorted(parts,key = lambda x:x[0]))
+
+        self._list_x = list(parts[:,0])
+        self._list_y = list(parts[:,1])
+        self._number_of_event = number_of_event
+        self._count_particle_hitting_central_zone = count_particle_hitting_central_zone
     
     

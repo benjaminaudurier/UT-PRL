@@ -4,7 +4,7 @@
 # each class represents a subobject of the preceding one
 ###############################################################################
 
-from __future__ import print_function
+from __future__ import nested_scopes, print_function
 from typing import List
 import numpy as np
 import ROOT
@@ -15,7 +15,7 @@ ROOT.gROOT.SetBatch(ROOT.kTRUE)
 
 ###############################################################################
 # hit_parts gives the number of particles that hit the rectangle defined by the object self
-def hit_parts(obj, copy_part, count_missed_part, x_pos_parent):
+def hit_parts(obj, copy_part, count_missed_part, x_pos_parent, pbar):
   #particles.list_x and particles.list_y must be sorted (on the x-basis), to optimise the iterative treatment
   x_pos = obj._x_pos
   y_pos = obj._y_pos
@@ -27,7 +27,6 @@ def hit_parts(obj, copy_part, count_missed_part, x_pos_parent):
   i = 0
 
   while i<n-1 and copy_part[0][i]<=x_pos+wth:
-    print("{} particles left".format(n), end = '\r') #this line displays a counter
     x_part = copy_part[0][i]
     y_part = copy_part[1][i]
 
@@ -36,12 +35,16 @@ def hit_parts(obj, copy_part, count_missed_part, x_pos_parent):
       copy_part[1].pop(i)
       n -= 1
       count_missed_part += 1
+      if pbar:
+          pbar.update(1)
 
     if (x_part >= x_pos) and (x_part <= (x_pos + wth)) and (y_part >= y_pos) and (y_part <= (y_pos + hgt)): #if the particle hits
       count += 1          # the count is increased
       copy_part[0].pop(i) # the particle is deleted from the  particles lists
       copy_part[1].pop(i)
       n-=1
+      if pbar:
+          pbar.update(1)
     else:
       i+=1
   return count, count_missed_part
@@ -49,22 +52,21 @@ def hit_parts(obj, copy_part, count_missed_part, x_pos_parent):
 
 ###############################################################################
 # hit_parts_precision gives a table of how many particles hit the object of the precision given (0:det - 1:stv - 2:mdl...)
-def hit_parts_precision(obj, copy_part, precision = 3, x_pos_parent = -10e20):
+def hit_parts_precision(obj, copy_part, precision = 3, x_pos_parent = -10e20, pbar = None):
   count_missed_part = 0
   #pos_particles is a list [pos_particles_x, pos_particles_y], and pos_particles_x is a copy of particles._list_x
   if precision == 0:
     #here we have reached the last level of the recursion, and the hitparts function is called
-    return hit_parts(obj,copy_part, count_missed_part, x_pos_parent)
+    return hit_parts(obj,copy_part, count_missed_part, x_pos_parent, pbar)
   else:
     matrix = obj._matrix
-    nb_line = len(matrix)
-    nb_coln = len(matrix[0])
-  
-    res = [[[]for j in range(nb_coln)] for i in range (nb_line)]
+    nb_row = len(matrix)
+    nb_coln = len(matrix[0])  
+    res = [[[]for j in range(nb_coln)] for i in range (nb_row)]
     for i in range(nb_coln):
-      for j in range(nb_line):
+      for j in range(nb_row):
         #we recursively call the function on every sub-element of the matrix
-        res_matrix_element, count_missed_part_temp = hit_parts_precision(matrix[j][i], copy_part, precision-1, obj._x_pos)
+        res_matrix_element, count_missed_part_temp = hit_parts_precision(matrix[j][i], copy_part, precision-1, obj._x_pos, pbar)
         res[j][i] = res_matrix_element
         count_missed_part += count_missed_part_temp
     return res, count_missed_part
@@ -81,7 +83,7 @@ def hit_parts_precision(obj, copy_part, precision = 3, x_pos_parent = -10e20):
 # precision = level of precision to be used while drawng the detector with the impacts: 0 is the object itself, 1 is a level below etc.., int < 3
 
 
-def draw_detector(obj, particles = [], data_rate = [], name = "Boxes",  precision = 3, missed_particles = 0, total_number = 1):
+def draw_detector(obj, particles = [], data_rate = [], name = "Boxes",  precision = 3, missed_particles = 0, total_number = 1, detector = "UT"):
 
   #data_rate = np.log(np.array(data_rate))
 
@@ -91,7 +93,11 @@ def draw_detector(obj, particles = [], data_rate = [], name = "Boxes",  precisio
   
   #c = ROOT.TCanvas("c", "title",2000,2000)
   c = ROOT.TCanvas("c")
-  c.SetCanvasSize(2000,500)
+
+  if detector == "UT":
+      c.SetCanvasSize(2000,2000)
+  elif detector == "MIGHTY":
+      c.SetCanvasSize(2000,500)
 
   #size_ref = max(obj._wth, obj._hgt) * 1.3 # spatial scale
   x_size_ref = obj._wth * 1.3
@@ -145,7 +151,10 @@ def draw_detector(obj, particles = [], data_rate = [], name = "Boxes",  precisio
 
           if i != 0 and i%4 == 1:
               grads[i] = ROOT.TText(x_scale + 0.06, y_scale * (i / 42.) + y_offset/y_size_ref * (41-i)/41, str(round(float(max_hits/(42*10**magnitude)*(i+1)),2)))
-              grads[i].SetTextSize(1./20)
+              if detector == "UT":
+                  grads[i].SetTextSize(1./60)
+              elif detector == "MIGHTY":
+                  grads[i].SetTextSize(1./20)
               grads[i].Draw()
 
           c.Update()
@@ -222,11 +231,46 @@ def draw_w_res(obj, x_size_ref, y_size_ref, x_origins, y_origins, max_hits, res 
         
   return boxes # Returns a list of TBoxes, ordered in a coherent manner (from biggest to smallest)
 
+###############################################################################
+#draw_detector_configuration allows us to vizualize the structure of the detector
+def draw_detector_configuration_UT(det, folder):
+  obj = det
+  size_ref = max(obj._wth, obj._hgt)*1.1
+  colors = [ROOT.kAzure+1,ROOT.kAzure+2,ROOT.kAzure+3,ROOT.kAzure+4]
+  for i in range (3): #Simulate an experiment with 0 impacts
+    boxes = draw_w_res_empty(obj, size_ref, 0.05, 0.05, colors[i], colors[i+1])
+    c = ROOT.TCanvas("","", 1000,1000)
+    for box in tqdm(boxes):
+        box.Draw('l')
+        c.Update()
+        c.Modified()
+    c.Print("../../Pictures/" + folder + "/" + str(obj._type) + ".png")
+    obj = obj._matrix[0][0]
+    size_ref = max(obj._wth, obj._hgt)*1.1
+  return
+
+def draw_w_res_empty(obj, size_ref, x_offset, y_offset, color1, color2):
+
+  box = ROOT.TBox(x_offset, y_offset, x_offset + obj._wth/size_ref, y_offset + obj._hgt/size_ref)
+  box.SetFillColor(color1)
+  boxes = [box]
+  
+  matrix = obj._matrix
+  wth =  matrix[0][0]._wth/size_ref
+  hgt =  matrix[0][0]._hgt/size_ref
+  for i in range(len(matrix)):
+      for j in range(len(matrix[0])):
+          little_box = ROOT.TBox(j * wth + x_offset,y_offset +  i * hgt, (j+1) * wth + x_offset, y_offset + (i+1) *hgt)
+          little_box.SetFillColor(color2)
+          little_box.SetLineColor(color1)
+          little_box.SetLineWidth(4)
+          boxes.append(little_box)
+  return boxes
 
 
 ###############################################################################
-#draw_detector_configuration allows us to vizualize the structure of the detector
-def draw_detector_configuration(det, folder = "", masked_chip = ""):
+#draw_detector_configuration_mighty allows us to vizualize the structure of the mighty
+def draw_detector_configuration_mighty(det, folder = "", masked_chip = ""):
     obj = det
 
     colors = [ROOT.kAzure+1,ROOT.kAzure+2,ROOT.kAzure+3,ROOT.kAzure+4]
@@ -255,7 +299,7 @@ def draw_detector_configuration(det, folder = "", masked_chip = ""):
     ylabel.SetTextAlign(22)
     ylabel.Draw()
 
-    c.Print("../../Pictures/" + folder + "Detector" + ".png")
+    c.Print("../../Pictures/" + folder + "/" + "Detector" + ".png")
     
 
 
@@ -281,30 +325,12 @@ def draw_detector_configuration(det, folder = "", masked_chip = ""):
     ylabel.SetTextAngle(90)
     ylabel.SetTextAlign(22)
     ylabel.Draw()
-    c.Print("../../Pictures/" + folder + "Module" + ".png")
+    c.Print("../../Pictures/" + folder + "/" + "Module" + ".png")
 
     
     return
 
 
-
-def draw_w_res_empty(obj, size_ref, x_offset, y_offset, color1, color2):
-
-  box = ROOT.TBox(x_offset, y_offset, x_offset + obj._wth/size_ref, y_offset + obj._hgt/size_ref)
-  box.SetFillColor(color1)
-  boxes = [box]
-  
-  matrix = obj._matrix
-  wth =  matrix[0][0]._wth/size_ref
-  hgt =  matrix[0][0]._hgt/size_ref
-  for i in range(len(matrix)):
-      for j in range(len(matrix[0])):
-          little_box = ROOT.TBox(j * wth + x_offset,y_offset +  i * hgt, (j+1) * wth + x_offset, y_offset + (i+1) *hgt)
-          little_box.SetFillColor(color2)
-          little_box.SetLineColor(color1)
-          little_box.SetLineWidth(2)
-          boxes.append(little_box)
-  return boxes
 
 
 def draw_w_res_empty_module(obj, wth_size_ref, hgt_size_ref, x_offset, y_offset, color1, color2, masked_chip):
@@ -348,7 +374,6 @@ def draw_w_res_empty_stave(obj, wth_size_ref, hgt_size_ref, x_offset, y_offset, 
   if order_stave == 3 or order_stave == 4:
       list_disabled_module = "1111111111"
 
-  print(list_disabled_module)
   for i in range(len(matrix)):
       for j in range(len(matrix[0])):
           little_box = ROOT.TBox(j * wth + x_offset,y_offset +  i * hgt, (j+1) * wth + x_offset, y_offset + (i+1) *hgt)
@@ -396,24 +421,24 @@ class Chip:
     if pixel_precision:
       
       # we read the parameters from the config object
-      # nb_****_pxl_chp : how many line or column of pixel will be in the chip
+      # nb_****_pxl_chp : how many row or column of pixel will be in the chip
       # ***_stv         : geometrical caracteristics of one pixel
       # dead_zone_chp_left  : geometrical dead zone of a chip at the bottom or on the left
       nb_coln_pxl_chp = cfg.get("nb_coln_pxl_chp")
-      nb_line_pxl_chp = cfg.get("nb_line_pxl_chp")
+      nb_row_pxl_chp = cfg.get("nb_row_pxl_chp")
       wth_pxl = cfg.get("wth_pxl")
       hgt_pxl = cfg.get("hgt_pxl")
       dead_zone_chp_left = cfg.get("dead_zone_chp_left")
       dead_zone_chp_bottom = cfg.get("dead_zone_chp_bottom")
         
-      matrix = [[[]for k in range(nb_coln_pxl_chp)] for j in range (nb_line_pxl_chp)]
+      matrix = [[[]for k in range(nb_coln_pxl_chp)] for j in range (nb_row_pxl_chp)]
       
       # *_current represents the place where to put a new pixel (bottom-left corner)
       x_current = x_pos + dead_zone_chp_left
       y_current = y_pos + dead_zone_chp_bottom
       
       
-      for i in range(nb_line_pxl_chp):
+      for i in range(nb_row_pxl_chp):
         for j in range(nb_coln_pxl_chp):
           pix = Pixel(cfg, x_current, y_current)
           matrix[i][j] = pix
@@ -457,7 +482,7 @@ class Module:
     # we read the parameters from the config object
     # spcng_chp_* : space needed between two chips
     nb_coln_chp_mdl = cfg.get("nb_coln_chp_mdl")
-    nb_line_chp_mdl = cfg.get("nb_line_chp_mdl")
+    nb_row_chp_mdl = cfg.get("nb_row_chp_mdl")
     wth_chp = cfg.get("wth_chp")
     hgt_chp = cfg.get("hgt_chp")
     spcng_chp_x = cfg.get("spcng_chp_x")
@@ -465,14 +490,14 @@ class Module:
 
       
       
-    matrix = [[[]for k in range(nb_coln_chp_mdl)] for j in range (nb_line_chp_mdl)]
+    matrix = [[[]for k in range(nb_coln_chp_mdl)] for j in range (nb_row_chp_mdl)]
     
     # *_current represents the place where to put a new chip (bottom-left corner)
     x_current = x_pos 
     y_current = y_pos 
     
     
-    for i in range(nb_line_chp_mdl):
+    for i in range(nb_row_chp_mdl):
       for j in range(nb_coln_chp_mdl):
         chp = Chip(cfg, x_current, y_current, pixel_precision)
         matrix[i][j] = chp
@@ -505,21 +530,21 @@ class Stave:
   def __init__(self, cfg, x_pos = 0, y_pos = 0, pixel_precision = False):
     # we read the parameters from the config object
     nb_coln_mdl_stv = cfg.get("nb_coln_mdl_stv")
-    nb_line_mdl_stv = cfg.get("nb_line_mdl_stv")
+    nb_row_mdl_stv = cfg.get("nb_row_mdl_stv")
     wth_mdl = cfg.get("wth_mdl")
     hgt_mdl = cfg.get("hgt_mdl")
     spcng_mdl_x = cfg.get("spcng_mdl_x")
     spcng_mdl_y = cfg.get("spcng_mdl_y")
       
       
-    matrix = [[[]for k in range(nb_coln_mdl_stv)] for j in range (nb_line_mdl_stv)]
+    matrix = [[[]for k in range(nb_coln_mdl_stv)] for j in range (nb_row_mdl_stv)]
     
     # *_current represents the place where to put a new module (bottom-left corner)
     x_current = x_pos 
     y_current = y_pos 
     
     
-    for i in range(nb_line_mdl_stv):
+    for i in range(nb_row_mdl_stv):
       for j in range(nb_coln_mdl_stv):
         mdl = Module(cfg, x_current, y_current, pixel_precision)
         matrix[i][j] = mdl
@@ -553,7 +578,7 @@ class Detector:
     
     # we read the parameters from the config object
     # spcng_stv_* : spacing between different stave in x or y
-    nb_line_stv = cfg.get("nb_line_stv")
+    nb_row_stv = cfg.get("nb_row_stv")
     nb_coln_stv = cfg.get("nb_coln_stv")
     wth_stv = cfg.get("wth_stv")
     hgt_stv = cfg.get("hgt_stv")
@@ -565,19 +590,19 @@ class Detector:
     x_pos = - float(wth_det) / 2.
     y_pos = - float(hgt_det) / 2.
     
-    matrix = [[[]for k in range(nb_coln_stv)] for j in range (nb_line_stv)]
+    matrix = [[[]for k in range(nb_coln_stv)] for j in range (nb_row_stv)]
     x_current = x_pos
     y_current = y_pos
       
 
-    for i in range(nb_line_stv):
+    for i in range(nb_row_stv):
       for j in range(nb_coln_stv):
         stv = Stave(cfg, x_current, y_current, pixel_precision)
         matrix[i][j] = stv
         
         # we update the current values 
         x_current += wth_stv + spcng_stv_x
-        print("Stave " + str(i*nb_coln_stv + j+1) + " out of " + str(nb_line_stv * nb_coln_stv) + " created")
+        print("Stave " + str(i*nb_coln_stv + j+1) + " out of " + str(nb_row_stv * nb_coln_stv) + " created")
         
       x_current = x_pos
       y_current += hgt_stv + spcng_stv_y

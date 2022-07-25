@@ -6,17 +6,17 @@
 ###############################################################################
 
 class Config : 
-  def __init__(self, cfgfile = ""):
+  def __init__(self, cfgfile = "", detector = "UT"):
     self._cfgfile = cfgfile
     self._dict = {} #Contains the keys and their values
     self._is_cfg_study_zone = False
     self._is_cfg_detector = True
-    self.creation_config()
+    self.creation_config(detector)
     self._fichier = None
     self._lines = [[]]
-    self._keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_line_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom',
-                  'dead_zone_chp_top','spcng_chp_x','spcng_chp_y','nb_line_chp_mdl','nb_coln_chp_mdl','mask_dead_column','spcng_mdl_x','spcng_mdl_y','nb_line_mdl_stv',
-                  'nb_coln_mdl_stv','spcng_stv_x','spcng_stv_y', 'nb_line_stv','nb_coln_stv']
+    self._keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_row_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom',
+                  'dead_zone_chp_top','spcng_chp_x','spcng_chp_y','nb_row_chp_mdl','nb_coln_chp_mdl','mask_dead_column','spcng_mdl_x','spcng_mdl_y','nb_row_mdl_stv',
+                  'nb_coln_mdl_stv','spcng_stv_x','spcng_stv_y', 'nb_row_stv','nb_coln_stv']
    
   #############################################################################
   def ouverture(self):
@@ -33,7 +33,7 @@ class Config :
     
   #############################################################################
   def text_to_list(self):
-    #intakes an opened .txt file, deletes the unnecessary lines, returns a list [("information type", "value")]
+    #intakes an opened .txt file, deletes the unnecessary rows, returns a list [("information type", "value")]
     #we remove the commentary lines - each line that starts with a # is a commentary
     try:
       lines = self._fichier.readlines()
@@ -57,9 +57,9 @@ class Config :
   #############################################################################
   def verif_format(self):
     #checks the format of the config.txt file, returns error messages if it is not right
-    keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_line_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom','dead_zone_chp_top',
-            'spcng_chp_x','spcng_chp_y','nb_line_chp_mdl','nb_coln_chp_mdl','mask_dead_column','spcng_mdl_x','spcng_mdl_y','nb_line_mdl_stv','nb_coln_mdl_stv','spcng_stv_x',
-            'spcng_stv_y', 'nb_line_stv','nb_coln_stv']
+    keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_row_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom','dead_zone_chp_top',
+            'spcng_chp_x','spcng_chp_y','nb_row_chp_mdl','nb_coln_chp_mdl','mask_dead_column','spcng_mdl_x','spcng_mdl_y','nb_row_mdl_stv','nb_coln_mdl_stv','spcng_stv_x',
+            'spcng_stv_y', 'nb_row_stv','nb_coln_stv']
     lines = self._lines
     errorMessage = "The file does not correspond to a config file of the detector"
     bool = True
@@ -82,24 +82,25 @@ class Config :
     return bool
     
   #############################################################################      
-  def remplissage_dict_config_detector(self):
+  def remplissage_dict_config_detector(self, detector):
     #remplit les champs du dictionnaire
     #les champs peuvent etre laisses vides
     
-    keys = ["frmt_pxl",'spcng_pxl_x','spcng_pxl_y','nb_line_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom','dead_zone_chp_top',
-            'spcng_chp_x','spcng_chp_y','nb_line_chp_mdl','nb_coln_chp_mdl','mask_dead_column','spcng_mdl_x','spcng_mdl_y','nb_line_mdl_stv','nb_coln_mdl_stv','spcng_stv_x',
-            'spcng_stv_y','nb_line_stv','nb_coln_stv']
+    keys = ['frmt_pxl','spcng_pxl_x','spcng_pxl_y','nb_row_pxl_chp','nb_coln_pxl_chp','dead_zone_chp_left','dead_zone_chp_right','dead_zone_chp_bottom','dead_zone_chp_top',
+            'spcng_chp_x','spcng_chp_y','nb_row_chp_mdl','nb_coln_chp_mdl','mask_dead_column','spcng_mdl_x','spcng_mdl_y','nb_row_mdl_stv','nb_coln_mdl_stv','spcng_stv_x',
+            'spcng_stv_y','nb_row_stv','nb_coln_stv']
     for k in range(len(keys)): #we fill the dictionary
-      if self._lines[k+1][1] != "": #if the information is provided by the user
-          if keys[k] == 'mask_dead_column' and len(self._lines[k+1][1]) != self._dict['nb_coln_chp_mdl']:
-              print("List of masked chips is not the expected size")
-              print("Nb of coln of chips in module is : " + str(self._dict['nb_coln_chp_mdl']))
-              print("Length of the list of masked chips is : " + str(len(self._lines[k+1][1])))
-              exit()
-          elif keys[k] == 'mask_dead_column':
-              self._dict[keys[k]] = self._lines[k+1][1]
-          else:
-              self._dict[keys[k]] = int(self._lines[k+1][1])
+        if self._lines[k+1][1] != "": #if the information is provided by the user
+            if detector == 'MIGHTY':
+                if keys[k] == 'mask_dead_column' and len(self._lines[k+1][1]) != self._dict['nb_coln_chp_mdl']:
+                    print("List of masked chips is not the expected size")
+                    print("Nb of coln of chips in module is : " + str(self._dict['nb_coln_chp_mdl']))
+                    print("Length of the list of masked chips is : " + str(len(self._lines[k+1][1])))
+                    exit()
+            elif keys[k] == 'mask_dead_column':
+                self._dict[keys[k]] = self._lines[k+1][1]
+            else:
+                self._dict[keys[k]] = int(self._lines[k+1][1])
 
     #We fill the width and height fields for every sub-ensemble of the detector
     w = 0
@@ -122,20 +123,20 @@ class Config :
       h=50
     #width and height for chip
     self._dict["wth_chp"] = (w+self._dict["spcng_pxl_x"])*self._dict['nb_coln_pxl_chp'] - self._dict["spcng_pxl_x"] # n objects n-1 spaces between object
-    self._dict["hgt_chp"] = (h+self._dict["spcng_pxl_y"])*self._dict['nb_line_pxl_chp'] - self._dict["spcng_pxl_y"] # n objects n-1 spaces between object
+    self._dict["hgt_chp"] = (h+self._dict["spcng_pxl_y"])*self._dict['nb_row_pxl_chp'] - self._dict["spcng_pxl_y"] # n objects n-1 spaces between object
     #width and height for module
     self._dict["wth_mdl"] = (self._dict["wth_chp"]+self._dict["spcng_chp_x"]+ self._dict['dead_zone_chp_left'] + self._dict['dead_zone_chp_right'] )*self._dict['nb_coln_chp_mdl']  - self._dict["spcng_chp_x"] # n objects n-1 spaces between object
-    self._dict["hgt_mdl"] = (self._dict["hgt_chp"]+self._dict["spcng_chp_y"] + self._dict['dead_zone_chp_top'] + self._dict['dead_zone_chp_bottom'])*self._dict['nb_line_chp_mdl'] - self._dict["spcng_chp_y"] # n objects n-1 spaces between object
+    self._dict["hgt_mdl"] = (self._dict["hgt_chp"]+self._dict["spcng_chp_y"] + self._dict['dead_zone_chp_top'] + self._dict['dead_zone_chp_bottom'])*self._dict['nb_row_chp_mdl'] - self._dict["spcng_chp_y"] # n objects n-1 spaces between object
     #width and height for stave
     self._dict["wth_stv"] = (self._dict["wth_mdl"]+self._dict["spcng_mdl_x"])*self._dict['nb_coln_mdl_stv'] - self._dict["spcng_mdl_x"] # n objects n-1 spaces between object
-    self._dict["hgt_stv"] = (self._dict["hgt_mdl"]+self._dict["spcng_mdl_y"])*self._dict['nb_line_mdl_stv'] - self._dict["spcng_mdl_y"] # n objects n-1 spaces between object
+    self._dict["hgt_stv"] = (self._dict["hgt_mdl"]+self._dict["spcng_mdl_y"])*self._dict['nb_row_mdl_stv'] - self._dict["spcng_mdl_y"] # n objects n-1 spaces between object
     #width and height for detector
     self._dict["wth_det"] = (self._dict["wth_stv"]+self._dict["spcng_stv_x"])*self._dict['nb_coln_stv'] - self._dict["spcng_stv_x"] # n objects n-1 spaces between object
-    self._dict["hgt_det"] = (self._dict["hgt_stv"]+self._dict["spcng_stv_y"])*self._dict['nb_line_stv'] - self._dict["spcng_stv_y"] # n objects n-1 spaces between object
+    self._dict["hgt_det"] = (self._dict["hgt_stv"]+self._dict["spcng_stv_y"])*self._dict['nb_row_stv'] - self._dict["spcng_stv_y"] # n objects n-1 spaces between object
 
     #calculate the percentage of dead_zone in the detector
-    active_area_chip = w*h*self._dict['nb_line_pxl_chp']*self._dict['nb_coln_pxl_chp']
-    nb_chip_in_det = self._dict['nb_coln_chp_mdl'] * self._dict['nb_coln_mdl_stv'] * self._dict['nb_coln_stv'] * self._dict['nb_line_chp_mdl'] * self._dict['nb_line_mdl_stv'] * self._dict['nb_line_stv']
+    active_area_chip = w*h*self._dict['nb_row_pxl_chp']*self._dict['nb_coln_pxl_chp']
+    nb_chip_in_det = self._dict['nb_coln_chp_mdl'] * self._dict['nb_coln_mdl_stv'] * self._dict['nb_coln_stv'] * self._dict['nb_row_chp_mdl'] * self._dict['nb_row_mdl_stv'] * self._dict['nb_row_stv']
     total_active_area = active_area_chip * nb_chip_in_det
     area_det = self._dict["wth_det"] * self._dict["hgt_det"]
     area_beam = self._dict["wth_mdl"] * self._dict["hgt_mdl"]
@@ -148,12 +149,12 @@ class Config :
     
     
   #############################################################################
-  def creation_config(self):
+  def creation_config(self, detector):
     #Fills the dictionnary if the config.txt file had the right format
     self.ouverture()
     self.text_to_list()
     if self.verif_format():
-      self.remplissage_dict_config_detector()
+      self.remplissage_dict_config_detector(detector)
   
   #############################################################################      
   def get(self,arg):
